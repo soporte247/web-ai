@@ -1,0 +1,4400 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>DataShark - Generador de juegos 3D con IA</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-primary: #0a0e1a;
+      --bg-secondary: #121827;
+      --bg-tertiary: #1a2235;
+      --bg-card: rgba(26, 34, 53, 0.6);
+      --bg-glass: rgba(26, 34, 53, 0.4);
+      --accent-primary: #3b82f6;
+      --accent-secondary: #8b5cf6;
+      --accent-success: #10b981;
+      --accent-warning: #f59e0b;
+      --accent-danger: #ef4444;
+      --text-primary: #f8fafc;
+      --text-secondary: #cbd5e1;
+      --text-muted: #64748b;
+      --border-subtle: rgba(148, 163, 184, 0.1);
+      --border-medium: rgba(148, 163, 184, 0.2);
+      --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.5);
+      --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.5), 0 2px 4px -1px rgba(0, 0, 0, 0.3);
+      --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.5), 0 4px 6px -2px rgba(0, 0, 0, 0.3);
+      --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3);
+      --shadow-glow: 0 0 20px rgba(59, 130, 246, 0.3);
+    }
+    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+      background: linear-gradient(135deg, #0a0e1a 0%, #1a1f35 100%);
+      background-attachment: fixed;
+      color: var(--text-primary);
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+    
+    body::before {
+      content: '';
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: 
+        radial-gradient(circle at 20% 50%, rgba(59, 130, 246, 0.08) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(139, 92, 246, 0.08) 0%, transparent 50%);
+      pointer-events: none;
+      z-index: 0;
+    }
+    
+    main {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      min-height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+    
+    aside {
+      background: var(--bg-glass);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border-right: 1px solid var(--border-subtle);
+      padding: 32px 24px;
+      overflow-y: auto;
+      position: relative;
+    }
+    
+    aside::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 120px;
+      background: linear-gradient(180deg, rgba(59, 130, 246, 0.05) 0%, transparent 100%);
+      pointer-events: none;
+    }
+    
+    section {
+      padding: 32px;
+      background: transparent;
+      position: relative;
+    }
+    
+    h1 {
+      font-size: 32px;
+      font-weight: 800;
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+    
+    h2 {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--text-primary);
+      margin-bottom: 16px;
+      letter-spacing: -0.01em;
+    }
+    
+    h3 {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 12px;
+    }
+    
+    label {
+      display: block;
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      margin-top: 20px;
+      letter-spacing: 0.01em;
+    }
+    
+    label:first-of-type {
+      margin-top: 0;
+    }
+    
+    input, textarea, select {
+      width: 100%;
+      padding: 12px 16px;
+      background: var(--bg-card);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-subtle);
+      color: var(--text-primary);
+      border-radius: 12px;
+      font-family: inherit;
+      font-size: 0.9375rem;
+      transition: all 0.2s ease;
+      outline: none;
+    }
+    
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--accent-primary);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    }
+    
+    input::placeholder, textarea::placeholder {
+      color: var(--text-muted);
+    }
+    
+    textarea {
+      resize: vertical;
+      min-height: 120px;
+      line-height: 1.6;
+    }
+    
+    button {
+      width: 100%;
+      padding: 14px 20px;
+      border: none;
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      color: white;
+      font-weight: 600;
+      font-size: 0.9375rem;
+      border-radius: 12px;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+    }
+    
+    button::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: -100%;
+      width: 100%;
+      height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+      transition: left 0.5s ease;
+    }
+    
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
+    }
+    
+    button:hover::before {
+      left: 100%;
+    }
+    
+    button:active {
+      transform: translateY(0);
+    }
+    
+    button:disabled {
+      background: var(--bg-tertiary);
+      color: var(--text-muted);
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+    
+    button:disabled::before {
+      display: none;
+    }
+    
+    .panel {
+      margin-top: 24px;
+      padding: 20px;
+      border-radius: 16px;
+      background: var(--bg-card);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-subtle);
+      max-height: 350px;
+      overflow: auto;
+      font-size: 0.875rem;
+      box-shadow: var(--shadow-md);
+      transition: all 0.3s ease;
+    }
+    
+    .panel:hover {
+      border-color: var(--border-medium);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .panel-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+    }
+    
+    .panel-spaced {
+      margin-top: 24px;
+    }
+    
+    .list {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: grid;
+      gap: 10px;
+    }
+    
+    .list li {
+      padding: 12px 14px;
+      background: var(--bg-glass);
+      -webkit-backdrop-filter: blur(5px);
+      backdrop-filter: blur(5px);
+      border-radius: 10px;
+      border: 1px solid var(--border-subtle);
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    
+    .list li:hover {
+      background: var(--bg-card);
+      border-color: var(--accent-primary);
+      transform: translateX(4px);
+    }
+    
+    .mini-map {
+      width: 100%;
+      height: 160px;
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+    }
+    
+    .input-row {
+      display: flex;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    
+    .input-row input {
+      flex: 1;
+    }
+    
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      border-radius: 999px;
+      font-size: 0.8125rem;
+      font-weight: 500;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.2) 0%, rgba(139, 92, 246, 0.2) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.3);
+      color: var(--text-secondary);
+      -webkit-backdrop-filter: blur(5px);
+      backdrop-filter: blur(5px);
+    }
+    
+    .panel pre {
+      margin: 0;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+      font-size: 0.8125rem;
+      line-height: 1.6;
+      color: var(--text-secondary);
+    }
+    
+    .canvas-container {
+      height: calc(100vh - 64px);
+      border-radius: 20px;
+      overflow: hidden;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-secondary);
+      box-shadow: var(--shadow-xl);
+      position: relative;
+    }
+    
+    .canvas-container::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: radial-gradient(circle at 50% 50%, rgba(59, 130, 246, 0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    
+    .badge {
+      display: inline-block;
+      padding: 6px 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: linear-gradient(135deg, rgba(59, 130, 246, 0.3) 0%, rgba(139, 92, 246, 0.3) 100%);
+      border: 1px solid rgba(59, 130, 246, 0.5);
+      border-radius: 999px;
+      margin-left: 12px;
+      -webkit-backdrop-filter: blur(5px);
+      backdrop-filter: blur(5px);
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .button-group button {
+      flex: 1;
+      margin-top: 0;
+    }
+    
+    .button-secondary {
+      background: linear-gradient(135deg, var(--bg-tertiary) 0%, var(--bg-card) 100%);
+      color: var(--text-secondary);
+    }
+    
+    .button-secondary:hover {
+      background: linear-gradient(135deg, var(--bg-card) 0%, var(--bg-tertiary) 100%);
+      color: var(--text-primary);
+    }
+    
+    .button-danger {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+    }
+    
+    .button-danger:hover {
+      box-shadow: var(--shadow-lg), 0 0 20px rgba(239, 68, 68, 0.3);
+    }
+    
+    .button-success {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    }
+    
+    .button-success:hover {
+      box-shadow: var(--shadow-lg), 0 0 20px rgba(16, 185, 129, 0.3);
+    }
+    
+    .app-shell {
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      min-height: 100vh;
+    }
+    
+    .auth-screen {
+      grid-column: 1/-1;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      position: relative;
+      z-index: 1;
+    }
+    
+    .auth-card {
+      width: 400px;
+      padding: 40px;
+      background: var(--bg-card);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border-radius: 24px;
+      border: 1px solid var(--border-subtle);
+      box-shadow: var(--shadow-xl);
+      animation: fadeInUp 0.6s ease;
+    }
+    
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .auth-card h1 {
+      text-align: center;
+      margin-bottom: 12px;
+    }
+    
+    .muted-text {
+      color: var(--text-muted);
+      margin-bottom: 32px;
+      font-size: 0.9375rem;
+      text-align: center;
+    }
+    
+    .app-screen {
+      display: contents;
+    }
+    
+    .row-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    
+    .row-gap {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    
+    .no-margin {
+      margin: 0;
+    }
+    
+    .canvas-placeholder {
+      text-align: center;
+      margin-top: 60px;
+      color: var(--text-muted);
+      font-size: 1.125rem;
+    }
+    
+    .library-screen {
+      grid-column: 1/-1;
+      padding: 40px;
+      max-width: 1400px;
+      margin: 0 auto;
+      width: 100%;
+    }
+    
+    .library-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 40px;
+      padding-bottom: 24px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .button-inline {
+      width: auto;
+      padding: 10px 20px;
+      font-size: 0.875rem;
+    }
+    
+    .worlds-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 24px;
+      animation: fadeIn 0.5s ease;
+    }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; }
+      to { opacity: 1; }
+    }
+    
+    .world-card {
+      padding: 24px;
+      background: var(--bg-card);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+    
+    .world-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+    
+    .world-card:hover {
+      border-color: var(--accent-primary);
+      box-shadow: var(--shadow-lg), var(--shadow-glow);
+      transform: translateY(-4px);
+    }
+    
+    .world-card:hover::before {
+      opacity: 1;
+    }
+    
+    .world-card-title {
+      margin: 0 0 12px 0;
+      font-size: 1.125rem;
+      font-weight: 700;
+      color: var(--text-primary);
+      letter-spacing: -0.01em;
+    }
+    
+    .world-card-meta {
+      color: var(--text-muted);
+      font-size: 0.8125rem;
+      margin: 6px 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .world-card-stats {
+      display: flex;
+      gap: 16px;
+      margin-top: 16px;
+      padding-top: 16px;
+      border-top: 1px solid var(--border-subtle);
+      font-size: 0.8125rem;
+      color: var(--text-secondary);
+    }
+    
+    .world-card-stats span {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    
+    .world-card-actions {
+      display: flex;
+      gap: 10px;
+      margin-top: 16px;
+    }
+    
+    .world-card-actions button {
+      flex: 1;
+      padding: 10px;
+      margin: 0;
+      font-size: 0.875rem;
+    }
+    
+    .tab-nav {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 32px;
+      padding: 4px;
+      background: var(--bg-card);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+    }
+    
+    .tab-button {
+      padding: 12px 24px;
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      margin: 0;
+      width: auto;
+      border-radius: 8px;
+      transition: all 0.2s ease;
+    }
+    
+    .tab-button:hover {
+      color: var(--text-secondary);
+      background: var(--bg-glass);
+      transform: none;
+      box-shadow: none;
+    }
+    
+    .tab-button.active {
+      color: var(--text-primary);
+      background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+      box-shadow: var(--shadow-md);
+    }
+    
+    
+    .tab-button.active:hover {
+      transform: none;
+    }
+    
+    .tab-content {
+      display: none;
+      animation: fadeIn 0.4s ease;
+    }
+    .tab-content.active {
+      display: block;
+    }
+    .checkbox-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-top: 16px;
+    }
+    .header-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 8px;
+    }
+    
+    .header-title {
+      flex: 1;
+    }
+    
+    .status-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+    
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      border: 1px solid var(--border-subtle);
+      background: var(--bg-glass);
+      -webkit-backdrop-filter: blur(5px);
+      backdrop-filter: blur(5px);
+      font-size: 0.8125rem;
+      font-weight: 500;
+      color: var(--text-secondary);
+      box-shadow: var(--shadow-sm);
+    }
+    
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--accent-warning);
+      animation: pulse 2s ease-in-out infinite;
+    }
+    
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.5; }
+    }
+    
+    .status-dot.online {
+      background: var(--accent-success);
+    }
+    
+    .card {
+      padding: 20px;
+      background: var(--bg-card);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border-radius: 16px;
+      border: 1px solid var(--border-subtle);
+      transition: all 0.3s ease;
+    }
+    
+    .card:hover {
+      border-color: var(--border-medium);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .card-title {
+      margin: 0 0 10px 0;
+      font-size: 1.125rem;
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+    
+    .card-meta {
+      color: var(--text-muted);
+      font-size: 0.875rem;
+      margin: 0 0 10px 0;
+    }
+    
+    .link-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--accent-primary);
+      text-decoration: none;
+      font-size: 0.9375rem;
+      font-weight: 500;
+      transition: all 0.2s ease;
+    }
+    
+    .link-button:hover {
+      color: var(--accent-secondary);
+      gap: 12px;
+    }
+    
+    .empty-state {
+      color: var(--text-muted);
+      font-size: 1rem;
+      text-align: center;
+      padding: 60px 20px;
+      background: var(--bg-glass);
+      border-radius: 16px;
+      border: 1px dashed var(--border-subtle);
+    }
+    
+    .hidden {
+      display: none !important;
+    }
+    
+    .error {
+      color: var(--accent-danger);
+      font-size: 0.875rem;
+      margin-top: 12px;
+      padding: 12px;
+      background: rgba(239, 68, 68, 0.1);
+      border: 1px solid rgba(239, 68, 68, 0.2);
+      border-radius: 8px;
+    }
+    
+    #loginForm, #registerForm {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    
+    /* Loading spinner */
+    .spinner {
+      display: inline-block;
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255, 255, 255, 0.3);
+      border-top-color: white;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+    
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    
+    /* Select inline styling fix */
+    select.select-inline {
+      width: auto;
+      margin-top: 0;
+    }
+    
+    /* Scrollbar styling */
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: var(--bg-secondary);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+    }
+    
+    ::-webkit-scrollbar-thumb:hover {
+      background: var(--border-medium);
+    }
+    
+    /* New Styles for Added Features */
+    
+    .saves-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    
+    .save-slot-card {
+      background: var(--bg-card);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+      transition: all 0.3s ease;
+    }
+    
+    .save-slot-card:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .save-slot-card h4 {
+      margin-bottom: 8px;
+      color: var(--text-primary);
+    }
+    
+    .save-slot-card p {
+      margin: 4px 0;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    
+    .save-actions {
+      display: flex;
+      gap: 8px;
+      margin-top: 12px;
+    }
+    
+    .achievements-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .achievement-section h4 {
+      margin: 16px 0 12px 0;
+      color: var(--text-primary);
+    }
+    
+    .achievement-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      background: var(--bg-card);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+      transition: all 0.3s ease;
+    }
+    
+    .achievement-card.unlocked {
+      border-color: var(--accent-success);
+      background: rgba(16, 185, 129, 0.1);
+    }
+    
+    .achievement-card.locked {
+      opacity: 0.6;
+      filter: grayscale(0.5);
+    }
+    
+    .achievement-icon {
+      font-size: 2.5rem;
+      min-width: 50px;
+      text-align: center;
+    }
+    
+    .achievement-card h5 {
+      margin: 0 0 4px 0;
+      color: var(--text-primary);
+    }
+    
+    .achievement-card p {
+      margin: 0;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    
+    .achievement-points {
+      display: inline-block;
+      margin-top: 4px;
+      padding: 2px 8px;
+      background: var(--accent-primary);
+      color: white;
+      border-radius: 4px;
+      font-size: 0.75rem;
+      font-weight: 600;
+    }
+    
+    .progress-stats {
+      background: var(--bg-card);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 24px;
+    }
+    
+    .progress-bar {
+      width: 100%;
+      height: 24px;
+      background: var(--bg-tertiary);
+      border-radius: 12px;
+      overflow: hidden;
+      margin: 12px 0;
+    }
+    
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      transition: width 0.5s ease;
+    }
+    
+    .achievement-notification {
+      position: fixed;
+      top: -200px;
+      right: 24px;
+      background: var(--bg-card);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border: 2px solid var(--accent-success);
+      border-radius: 12px;
+      padding: 20px;
+      box-shadow: var(--shadow-xl);
+      z-index: 10000;
+      transition: top 0.5s ease;
+    }
+    
+    .achievement-notification.show {
+      top: 24px;
+    }
+    
+    .achievement-notification-content {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .achievement-notification h4 {
+      margin: 0 0 4px 0;
+      color: var(--accent-success);
+    }
+    
+    .assets-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    
+    .asset-card {
+      background: var(--bg-card);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+      transition: all 0.3s ease;
+    }
+    
+    .asset-card:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+    }
+    
+    .asset-card h4 {
+      margin: 0 0 8px 0;
+      color: var(--text-primary);
+    }
+    
+    .asset-card p {
+      margin: 4px 0;
+      font-size: 0.875rem;
+      color: var(--text-secondary);
+    }
+    
+    .upload-form {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      margin-top: 16px;
+    }
+    
+    .upload-form input[type="file"] {
+      padding: 8px;
+      border: 2px dashed var(--border-medium);
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    
+    .floating-panel {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: var(--bg-secondary);
+      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-medium);
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: var(--shadow-xl);
+      z-index: 9999;
+      max-width: 800px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    
+    .panel-content {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+    
+    .inventory-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 8px;
+    }
+    
+    .inventory-slot {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .inventory-slot:hover {
+      border-color: var(--accent-primary);
+      transform: scale(1.05);
+    }
+    
+    .item-icon {
+      font-size: 2rem;
+      margin-bottom: 4px;
+    }
+    
+    .inventory-slot span {
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+    }
+    
+    .skill-tree-header {
+      margin-bottom: 16px;
+    }
+    
+    .skill-points {
+      color: var(--accent-primary);
+      font-weight: 700;
+      font-size: 1.25rem;
+    }
+    
+    .skill-categories {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    
+    .skill-category {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+    }
+    
+    .skill-category h4 {
+      margin: 0 0 12px 0;
+      color: var(--text-primary);
+    }
+    
+    .skill-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px;
+      margin-bottom: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 8px;
+    }
+    
+    .skill-info {
+      display: flex;
+      justify-content: space-between;
+      flex: 1;
+      margin-right: 8px;
+    }
+    
+    .skill-level {
+      color: var(--accent-primary);
+      font-weight: 600;
+    }
+    
+    .skill-upgrade-btn {
+      background: var(--accent-success);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      cursor: pointer;
+      font-size: 1.25rem;
+      transition: all 0.2s ease;
+    }
+    
+    .skill-upgrade-btn:hover:not(:disabled) {
+      background: var(--accent-primary);
+      transform: scale(1.1);
+    }
+    
+    .skill-upgrade-btn:disabled {
+      background: var(--bg-tertiary);
+      color: var(--text-muted);
+      cursor: not-allowed;
+    }
+    
+    .stat-bar {
+      margin: 8px 0;
+    }
+    
+    .stat-bar-bg {
+      width: 100%;
+      height: 20px;
+      background: var(--bg-tertiary);
+      border-radius: 10px;
+      overflow: hidden;
+      margin: 4px 0;
+    }
+    
+    .stat-bar-fill {
+      height: 100%;
+      transition: width 0.3s ease;
+    }
+    
+    .stat-bar-fill.health {
+      background: var(--accent-danger);
+    }
+    
+    .stat-bar-fill.mana {
+      background: var(--accent-primary);
+    }
+    
+    /* NPC Chat Improvements */
+    .npc-chat-header {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    
+    .npc-suggestions {
+      margin-top: 8px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    
+    .npc-suggestions small {
+      color: var(--text-muted);
+      font-size: 0.75rem;
+      margin-right: 4px;
+    }
+    
+    .suggestion-chip {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 16px;
+      padding: 4px 12px;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .suggestion-chip:hover {
+      background: var(--accent-primary);
+      color: white;
+      border-color: var(--accent-primary);
+      transform: translateY(-1px);
+    }
+    
+    /* FAQ Modal */
+    .faq-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 24px;
+    }
+    
+    .faq-content {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-medium);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 700px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-xl);
+    }
+    
+    .faq-content h2 {
+      margin: 0 0 24px 0;
+      color: var(--text-primary);
+    }
+    
+    .faq-item {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 12px;
+      transition: all 0.2s ease;
+    }
+    
+    .faq-item:hover {
+      border-color: var(--accent-primary);
+      transform: translateX(4px);
+    }
+    
+    .faq-question {
+      font-weight: 600;
+      color: var(--accent-primary);
+      margin-bottom: 8px;
+    }
+    
+    .faq-answer {
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
+    
+    .tutorial-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.8);
+      -webkit-backdrop-filter: blur(10px);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 10000;
+      padding: 24px;
+    }
+    
+    .tutorial-content {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-medium);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 800px;
+      max-height: 80vh;
+      overflow-y: auto;
+      box-shadow: var(--shadow-xl);
+    }
+    
+    .tutorial-content h2 {
+      margin: 0 0 24px 0;
+      color: var(--text-primary);
+    }
+    
+    .tutorial-content pre {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-subtle);
+      border-radius: 8px;
+      padding: 16px;
+      white-space: pre-wrap;
+      color: var(--text-secondary);
+      line-height: 1.8;
+      font-family: 'Inter', monospace;
+    }
+    
+    .modal-close-btn {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: var(--accent-danger);
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 36px;
+      height: 36px;
+      font-size: 1.25rem;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .modal-close-btn:hover {
+      transform: rotate(90deg) scale(1.1);
+    }
+    
+    /* Collapsible Panel System */
+    .panel-collapsible {
+      margin-top: 16px;
+    }
+    
+    .panel-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      user-select: none;
+    }
+    
+    .panel-header:hover {
+      background: var(--bg-glass);
+      border-color: var(--accent-primary);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .panel-header h3 {
+      margin: 0;
+      font-size: 16px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .panel-toggle {
+      width: 24px;
+      height: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+      font-size: 18px;
+      color: var(--text-secondary);
+    }
+    
+    .panel-toggle.open {
+      transform: rotate(180deg);
+    }
+    
+    .panel-body {
+      max-height: 0;
+      overflow: hidden;
+      transition: max-height 0.3s ease, padding 0.3s ease;
+    }
+    
+    .panel-body.open {
+      max-height: 600px;
+      padding: 16px;
+      background: var(--bg-glass);
+      border: 1px solid var(--border-subtle);
+      border-top: none;
+      border-radius: 0 0 12px 12px;
+      margin-top: -12px;
+    }
+    
+    /* Panel Categories */
+    .panel-category {
+      margin-bottom: 8px;
+      padding-bottom: 8px;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    
+    .panel-category:last-child {
+      border-bottom: none;
+      margin-bottom: 0;
+      padding-bottom: 0;
+    }
+    
+    .panel-category-title {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      letter-spacing: 0.05em;
+    }
+    
+    /* New Feature Grids */
+    .quests-list, .clans-list, .market-grid, .templates-grid, .crafting-grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    }
+    
+    .quest-card, .clan-card, .market-item, .template-card, .recipe-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px;
+      padding: 16px;
+      transition: all 0.2s ease;
+      cursor: pointer;
+    }
+    
+    .quest-card:hover, .clan-card:hover, .market-item:hover, .template-card:hover, .recipe-card:hover {
+      border-color: var(--accent-primary);
+      transform: translateY(-2px);
+      box-shadow: var(--shadow-lg);
+    }
+    
+    .quest-title, .clan-name, .market-title, .template-name {
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 8px;
+    }
+    
+    .quest-progress {
+      margin-top: 8px;
+      height: 8px;
+      background: var(--bg-tertiary);
+      border-radius: 4px;
+      overflow: hidden;
+    }
+    
+    .quest-progress-bar {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+      transition: width 0.3s ease;
+    }
+    
+    .inventory-grid-large {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+      gap: 12px;
+    }
+    
+    .inventory-item {
+      aspect-ratio: 1;
+      background: var(--bg-tertiary);
+      border: 2px solid var(--border-subtle);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      position: relative;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .inventory-item:hover {
+      border-color: var(--accent-primary);
+      transform: scale(1.05);
+    }
+    
+    .item-rarity-common { border-color: #9e9e9e; }
+    .item-rarity-uncommon { border-color: #4caf50; }
+    .item-rarity-rare { border-color: #2196f3; }
+    .item-rarity-epic { border-color: #9c27b0; }
+    .item-rarity-legendary { border-color: #ff9800; }
+    
+    .currency-display {
+      font-size: 18px;
+      font-weight: 600;
+      color: var(--accent-secondary);
+    }
+    
+    .inventory-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+    }
+    
+    .stat-card {
+      background: var(--bg-glass);
+      padding: 16px;
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+      text-align: center;
+    }
+    
+    .stat-value {
+      font-size: 32px;
+      font-weight: 700;
+      color: var(--accent-primary);
+      margin: 8px 0;
+    }
+    
+    .stat-label {
+      font-size: 14px;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    
+    .clan-info {
+      padding: 20px;
+      background: var(--bg-glass);
+      border-radius: 12px;
+      border: 1px solid var(--border-subtle);
+    }
+    
+    .difficulty-easy { color: #4caf50; }
+    .difficulty-medium { color: #ff9800; }
+    .difficulty-hard { color: #f44336; }
+  </style>
+</head>
+<body>
+  <main id="appContainer" class="app-shell">
+    <!-- Auth Screen -->
+    <div id="authScreen" class="hidden auth-screen">
+      <div class="auth-card">
+        <h1>🦈 DataShark</h1>
+        <p class="muted-text">Crea juegos 3D increíbles desde texto con IA</p>
+        
+        <div id="loginForm">
+          <label>Usuario</label>
+          <input type="text" id="loginUsername" placeholder="usuario" minlength="3" required>
+          <label>Contraseña</label>
+          <input type="password" id="loginPassword" placeholder="contraseña" minlength="6" required>
+          <button onclick="handleLogin()">Ingresar</button>
+          <button type="button" onclick="switchToRegister()" class="button-secondary">¿Crear cuenta?</button>
+          <div id="loginError" class="error"></div>
+        </div>
+
+        <div id="registerForm" class="hidden">
+          <label>Usuario</label>
+          <input type="text" id="regUsername" placeholder="usuario" minlength="3" required>
+          <label>Contraseña</label>
+          <input type="password" id="regPassword" placeholder="mínimo 6 caracteres" minlength="6" required>
+          <button onclick="handleRegister()">Registrarse</button>
+          <button type="button" onclick="switchToLogin()" class="button-secondary">Volver</button>
+          <div id="regError" class="error"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Main App -->
+    <div id="appScreen" class="app-screen">
+      <aside>
+        <div class="header-bar">
+          <div class="row-between header-title">
+            <h1 class="no-margin">🦈 DataShark</h1>
+            <span class="badge">AI</span>
+          </div>
+        </div>
+        <div class="status-row">
+          <span class="status-pill">
+            <span id="statusDot" class="status-dot"></span>
+            <span id="statusText">Verificando backend...</span>
+          </span>
+        </div>
+        <p class="muted-text">👋 Hola, <strong id="username">Usuario</strong></p>
+
+        <label for="prompt">✨ Prompt del mundo</label>
+        <textarea id="prompt" placeholder="Describe el mundo que quieres crear..." title="Prompt">Ciudad costera futurista con clima cambiante</textarea>
+
+        <label for="theme">🎨 Tema</label>
+        <input type="text" id="theme" value="ciencia ficción" placeholder="ej: ciencia ficción, fantasía, terror..." title="Tema">
+
+        <label for="multiplayer">🎮 Modo multiplayer</label>
+        <select id="multiplayer" title="Multiplayer">
+          <option value="co-op">🤝 Cooperativo</option>
+          <option value="competitive">⚔️ Competitivo</option>
+        </select>
+
+        <label for="skillLevel">📊 Nivel del jugador</label>
+        <select id="skillLevel" title="Nivel del jugador">
+          <option value="principiante">🌱 Principiante</option>
+          <option value="intermedio" selected>⚡ Intermedio</option>
+          <option value="avanzado">🔥 Avanzado</option>
+        </select>
+
+        <label class="checkbox-row" for="arVr">
+          <input type="checkbox" id="arVr" checked> 🥽 Soporte AR/VR
+        </label>
+
+        <button onclick="handleGenerate()" id="generateBtn">🚀 Generar mundo con IA</button>
+
+        <div class="button-group">
+          <button onclick="goToLibrary()" class="button-secondary">📚 Biblioteca</button>
+          <button onclick="handleLogout()" class="button-danger">🚪 Salir</button>
+        </div>
+
+        <div class="panel">
+          <h3>Respuesta</h3>
+          <pre id="responsePanel">Sin respuesta todavía.</pre>
+        </div>
+
+        <!-- Panel Colapsable: Editor -->
+        <div class="panel-collapsible">
+          <div class="panel-header" onclick="togglePanel('editor')">
+            <h3>📝 Editor & Visualización</h3>
+            <span class="panel-toggle">▼</span>
+          </div>
+          <div class="panel-body" id="panel-editor">
+            <div class="panel-grid">
+              <div>
+                <span class="chip">Mini-mapa</span>
+                <canvas id="miniMap" class="mini-map"></canvas>
+              </div>
+              <div>
+                <span class="chip">Misiones</span>
+                <ul id="missionsList" class="list"></ul>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Colapsable: Asistente IA -->
+        <div class="panel-collapsible">
+          <div class="panel-header" onclick="togglePanel('npc')">
+            <h3>🤖 Asistente IA Local</h3>
+            <span class="panel-toggle open" id="toggle-npc">▼</span>
+          </div>
+          <div class="panel-body open" id="panel-npc">
+            <div class="npc-chat-header">
+              <button onclick="showFAQ()" class="button-secondary button-inline">❓ FAQ</button>
+              <button onclick="showTutorial('basico')" class="button-secondary button-inline">📚 Tutorial</button>
+            </div>
+            <div id="npcChat" class="list"></div>
+            <div class="input-row">
+              <input id="npcInput" placeholder="Pregúntame cualquier cosa..." />
+              <button class="button-secondary button-inline" onclick="sendNpcMessage()">Enviar</button>
+            </div>
+            <div class="npc-suggestions">
+              <small>Sugerencias:</small>
+              <button onclick="askQuickQuestion('¿Cómo creo un mundo?')" class="suggestion-chip">Crear mundo</button>
+              <button onclick="askQuickQuestion('¿Cómo guardo mi progreso?')" class="suggestion-chip">Guardar</button>
+              <button onclick="askQuickQuestion('¿Qué logros hay?')" class="suggestion-chip">Logros</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Colapsable: Herramientas -->
+        <div class="panel-collapsible">
+          <div class="panel-header" onclick="togglePanel('tools')">
+            <h3>🛠️ Herramientas</h3>
+            <span class="panel-toggle">▼</span>
+          </div>
+          <div class="panel-body" id="panel-tools">
+            <div class="panel-category">
+              <div class="panel-category-title">Exportación</div>
+              <div class="input-row">
+                <button onclick="exportJson()">Exportar JSON</button>
+                <button class="button-secondary" onclick="exportGltf()">Exportar glTF</button>
+              </div>
+            </div>
+            <div class="panel-category">
+              <div class="panel-category-title">Guardado rápido</div>
+              <div class="input-row">
+                <button onclick="saveGame(1, 'Quick Save')" class="button-success">Guardar partida</button>
+                <button onclick="loadSavesList(); goToLibrary(); switchTab('saves')" class="button-secondary">Ver partidas</button>
+              </div>
+            </div>
+            <div class="panel-category">
+              <div class="panel-category-title">Sistema de combate</div>
+              <div class="input-row">
+                <button onclick="document.getElementById('combatPanel').classList.remove('hidden'); updatePlayerStats(); renderInventory(); renderSkillTree()">Abrir panel</button>
+                <button onclick="document.getElementById('vrButton').click()" class="button-secondary" id="vrButton">🥽 Modo VR</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Panel Colapsable: Biblioteca -->
+        <div class="panel-collapsible">
+          <div class="panel-header" onclick="togglePanel('library')">
+            <h3>📚 Accesos rápidos</h3>
+            <span class="panel-toggle">▼</span>
+          </div>
+          <div class="panel-body" id="panel-library">
+            <div class="input-row">
+              <button onclick="goToLibrary(); switchTab('achievements'); loadAchievements()">🏆 Logros</button>
+              <button onclick="goToLibrary(); switchTab('assets'); loadUserAssets()">⚙️ Assets</button>
+            </div>
+          </div>
+        </div>
+      </aside>
+
+      <section>
+        <h2>Vista 3D</h2>
+        <div class="canvas-container" id="canvas">
+          <p class="canvas-placeholder">Cargando visualización 3D...</p>
+        </div>
+      </section>
+    </div>
+
+      <!-- Library Screen -->
+    <div id="libraryScreen" class="hidden library-screen">
+      <div class="library-header">
+        <div>
+          <h1>📚 Biblioteca DataShark</h1>
+          <p class="muted-text">Gestiona tus mundos y explora creaciones de la comunidad</p>
+        </div>
+        <div class="row-gap">
+          <button onclick="goToHome()" class="button-secondary button-inline">← Volver al editor</button>
+          <button onclick="handleLogout()" class="button-danger button-inline">🚪 Salir</button>
+        </div>
+      </div>
+      
+      <!-- Tabs -->
+      <div class="tab-nav">
+        <button class="tab-button active" data-tab="myWorlds" onclick="switchTab('myWorlds')">🏠 Mis mundos</button>
+        <button class="tab-button" data-tab="browse" onclick="switchTab('browse')">🌍 Explorar comunidad</button>
+        <button class="tab-button" data-tab="saves" onclick="switchTab('saves')">💾 Partidas guardadas</button>
+        <button class="tab-button" data-tab="achievements" onclick="switchTab('achievements')">🏆 Logros</button>
+        <button class="tab-button" data-tab="assets" onclick="switchTab('assets')">⚙️ Custom Assets</button>
+        <button class="tab-button" data-tab="quests" onclick="switchTab('quests')">🎯 Quests</button>
+        <button class="tab-button" data-tab="inventory" onclick="switchTab('inventory')">🎒 Inventario</button>
+        <button class="tab-button" data-tab="market" onclick="switchTab('market')">🏪 Mercado</button>
+        <button class="tab-button" data-tab="clans" onclick="switchTab('clans')">👥 Clanes</button>
+        <button class="tab-button" data-tab="stats" onclick="switchTab('stats')">📊 Estadísticas</button>
+        <button class="tab-button" data-tab="settings" onclick="switchTab('settings')">⚙️ Configuración</button>
+        <button class="tab-button" data-tab="templates" onclick="switchTab('templates')">📋 Plantillas</button>
+        <button class="tab-button" data-tab="mods" onclick="switchTab('mods')">🎮 Mods & Lobby</button>
+      </div>
+      
+      <!-- My Worlds Tab -->
+      <div id="myWorldsTab" class="tab-content active">
+        <div id="worldsList" class="worlds-grid"></div>
+      </div>
+      
+      <!-- Browse Worlds Tab -->
+      <div id="browseTab" class="tab-content">
+        <div class="status-row">
+          <h2 class="no-margin">🔥 Mundos públicos</h2>
+          <select id="browseSort" onchange="loadBrowseWorlds()" class="select-inline">
+            <option value="popular">⭐ Más populares</option>
+            <option value="recent">🆕 Más recientes</option>
+            <option value="liked">❤️ Más gustados</option>
+          </select>
+        </div>
+        <div id="browseWorldsList" class="worlds-grid"></div>
+      </div>
+      
+      <!-- Mods & Lobby Tab -->
+      <div id="modsTab" class="tab-content">
+        <div class="panel">
+          <h3>📦 Versiones disponibles</h3>
+          <ul id="versionsList" class="list"></ul>
+        </div>
+        <div class="panel panel-spaced">
+          <h3>🎲 Mods recomendados</h3>
+          <ul id="modsList" class="list"></ul>
+        </div>
+        <div class="panel panel-spaced">
+          <h3>🎮 Lobby multiplayer</h3>
+          <div class="input-row">
+            <input id="lobbyMode" placeholder="co-op / competitive" />
+            <input id="lobbyPlayers" type="number" placeholder="máx. jugadores" min="2" max="16" />
+          </div>
+          <div class="input-row">
+            <button onclick="createLobby()" class="button-success">Crear lobby</button>
+            <span id="lobbyInfo" class="chip">🔴 Sin lobby</span>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Saves Tab -->
+      <div id="savesTab" class="tab-content">
+        <div class="panel">
+          <h3>💾 Partidas guardadas</h3>
+          <div class="input-row">
+            <input id="saveName" placeholder="Nombre de la partida" />
+            <input id="saveSlot" type="number" placeholder="Slot (1-10)" min="1" max="10" value="1" />
+            <button onclick="saveGame(parseInt(document.getElementById('saveSlot').value), document.getElementById('saveName').value)" class="button-success">Guardar</button>
+          </div>
+          <div id="savesList" class="saves-grid"></div>
+        </div>
+      </div>
+      
+      <!-- Achievements Tab -->
+      <div id="achievementsTab" class="tab-content">
+        <div class="panel">
+          <div id="achievementProgress"></div>
+          <div id="achievementsList" class="achievements-grid"></div>
+        </div>
+      </div>
+      
+      <!-- Custom Assets Tab -->
+      <div id="assetsTab" class="tab-content">
+        <div class="panel">
+          <h3>📤 Subir asset personalizado</h3>
+          <div class="upload-form">
+            <input id="assetName" type="text" placeholder="Nombre del asset" />
+            <select id="assetType">
+              <option value="model">Modelo 3D (.glb)</option>
+              <option value="texture">Textura (.png)</option>
+              <option value="audio">Audio (.mp3)</option>
+            </select>
+            <input id="assetDesc" type="text" placeholder="Descripción (opcional)" />
+            <input id="assetFileInput" type="file" accept=".glb,.png,.mp3" />
+            <label>
+              <input id="assetPublic" type="checkbox" /> Hacer público
+            </label>
+            <button onclick="uploadCustomAsset()" class="button-success">Subir asset</button>
+          </div>
+        </div>
+        
+        <div class="panel panel-spaced">
+          <h3>📦 Tus assets</h3>
+          <div id="userAssetsList" class="assets-grid"></div>
+        </div>
+        
+        <div class="panel panel-spaced">
+          <h3>🌍 Assets públicos</h3>
+          <div class="input-row">
+            <select onchange="browsePublicAssets(this.value)">
+              <option value="">Todos</option>
+              <option value="model">Modelos 3D</option>
+              <option value="texture">Texturas</option>
+              <option value="audio">Audio</option>
+            </select>
+          </div>
+          <div id="publicAssetsList" class="assets-grid"></div>
+        </div>
+      </div>
+      
+      <!-- Quests Tab -->
+      <div id="questsTab" class="tab-content">
+        <div class="panel">
+          <h3>🎯 Quests Activas</h3>
+          <div id="activeQuestsList" class="quests-list"></div>
+        </div>
+        <div class="panel panel-spaced">
+          <h3>✅ Quests Completadas</h3>
+          <div id="completedQuestsList" class="quests-list"></div>
+        </div>
+      </div>
+      
+      <!-- Inventory Tab -->
+      <div id="inventoryTab" class="tab-content">
+        <div class="panel">
+          <div class="inventory-header">
+            <h3>🎒 Inventario</h3>
+            <div class="currency-display">💰 <span id="currencyAmount">0</span> monedas</div>
+          </div>
+          <div id="fullInventoryGrid" class="inventory-grid-large"></div>
+        </div>
+        <div class="panel panel-spaced">
+          <h3>🔨 Crafting</h3>
+          <div id="craftingRecipes" class="crafting-grid"></div>
+        </div>
+      </div>
+      
+      <!-- Market Tab -->
+      <div id="marketTab" class="tab-content">
+        <div class="panel">
+          <h3>🛒 Explorar Mercado</h3>
+          <div id="marketListings" class="market-grid"></div>
+        </div>
+        <div class="panel panel-spaced">
+          <h3>📦 Vender Item</h3>
+          <input id="sellItemId" placeholder="ID del item" />
+          <input id="sellItemName" placeholder="Nombre del item" />
+          <input id="sellItemPrice" type="number" placeholder="Precio" min="1" />
+          <input id="sellItemQty" type="number" placeholder="Cantidad" min="1" value="1" />
+          <textarea id="sellItemDesc" placeholder="Descripción (opcional)"></textarea>
+          <button onclick="listItemForSale()" class="button-success">Publicar venta</button>
+        </div>
+      </div>
+      
+      <!-- Clans Tab -->
+      <div id="clansTab" class="tab-content">
+        <div class="panel">
+          <h3>👥 Tu Clan</h3>
+          <div id="myClanInfo" class="clan-info"></div>
+        </div>
+        <div class="panel panel-spaced">
+          <h3>🏆 Explorar Clanes</h3>
+          <div id="clansList" class="clans-list"></div>
+        </div>
+        <div class="panel panel-spaced">
+          <h3>➕ Crear Nuevo Clan</h3>
+          <input id="clanName" placeholder="Nombre del clan" maxlength="30" />
+          <textarea id="clanDesc" placeholder="Descripción del clan (opcional)"></textarea>
+          <button onclick="createNewClan()" class="button-success">Crear Clan</button>
+        </div>
+      </div>
+      
+      <!-- Stats Tab -->
+      <div id="statsTab" class="tab-content">
+        <div class="panel">
+          <h3>📊 Tus Estadísticas</h3>
+          <div id="playerStatsDisplay" class="stats-grid"></div>
+        </div>
+      </div>
+      
+      <!-- Settings Tab -->
+      <div id="settingsTab" class="tab-content">
+        <div class="panel">
+          <h3>🎨 Gráficos</h3>
+          <label>Calidad de Gráficos</label>
+          <select id="graphicsQuality" onchange="updateSettings()">
+            <option value="low">Bajo</option>
+            <option value="medium" selected>Medio</option>
+            <option value="high">Alto</option>
+            <option value="ultra">Ultra</option>
+          </select>
+        </div>
+        
+        <div class="panel panel-spaced">
+          <h3>🔊 Audio</h3>
+          <label>Volumen General: <span id="audioVolumeLabel">100%</span></label>
+          <input id="audioVolume" type="range" min="0" max="1" step="0.1" value="1" onchange="updateSettings()" />
+          
+          <label>Volumen Música: <span id="musicVolumeLabel">70%</span></label>
+          <input id="musicVolume" type="range" min="0" max="1" step="0.1" value="0.7" onchange="updateSettings()" />
+          
+          <label>Volumen SFX: <span id="sfxVolumeLabel">100%</span></label>
+          <input id="sfxVolume" type="range" min="0" max="1" step="0.1" value="1" onchange="updateSettings()" />
+        </div>
+        
+        <div class="panel panel-spaced">
+          <h3>♿ Accesibilidad</h3>
+          <label>Modo Daltonismo</label>
+          <select id="colorblindMode" onchange="updateSettings()">
+            <option value="none">Ninguno</option>
+            <option value="deuteranopia">Deuteranopia (rojo-verde)</option>
+            <option value="protanopia">Protanopia (rojo-verde)</option>
+            <option value="tritanopia">Tritanopia (azul-amarillo)</option>
+          </select>
+          
+          <label>Tamaño de Subtítulos</label>
+          <select id="subtitleSize" onchange="updateSettings()">
+            <option value="small">Pequeño</option>
+            <option value="medium" selected>Mediano</option>
+            <option value="large">Grande</option>
+            <option value="xlarge">Extra Grande</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Templates Tab -->
+      <div id="templatesTab" class="tab-content">
+        <div class="panel">
+          <h3>📋 Plantillas de Mundos</h3>
+          <div id="templatesList" class="templates-grid"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- New UI Panels for Combat & Skills -->
+  <div id="combatPanel" class="floating-panel hidden">
+    <div class="panel-content">
+      <div id="playerStatsPanel"></div>
+      <div id="inventoryGrid" class="inventory-grid"></div>
+      <div id="skillTreeContainer"></div>
+      <button onclick="document.getElementById('combatPanel').classList.add('hidden')" class="button-secondary">Cerrar</button>
+    </div>
+  </div>
+
+  <script src="https://cdn.babylonjs.com/babylon.js" onerror="window.__babylonFailed = true"></script>
+  <script>
+    const API = "http://127.0.0.1:8000";
+    let gl;
+    let shaderProgram;
+    let positionBuffer;
+    let objects = [];
+    let animationId;
+    let canvasElement;
+    let angle = 0;
+    let statusInterval;
+    let babylonEngine;
+    let babylonScene;
+    let babylonMeshes = [];
+    let lastPayload = null;
+    let lastWorldId = null;
+    let npcHistory = [];
+
+    // Init
+    document.addEventListener("DOMContentLoaded", () => {
+      const token = localStorage.getItem("authToken");
+      if (!token) {
+        showAuthScreen();
+      } else {
+        showAppScreen();
+        document.getElementById("username").textContent = localStorage.getItem("username") || "Usuario";
+      }
+    });
+
+    // Auth
+    function showAuthScreen() {
+      document.getElementById("authScreen").classList.remove("hidden");
+      document.getElementById("appScreen").style.display = "none";
+      document.getElementById("libraryScreen").classList.add("hidden");
+    }
+
+    function switchToRegister() {
+      document.getElementById("loginForm").classList.add("hidden");
+      document.getElementById("registerForm").classList.remove("hidden");
+    }
+
+    function switchToLogin() {
+      document.getElementById("loginForm").classList.remove("hidden");
+      document.getElementById("registerForm").classList.add("hidden");
+    }
+
+    async function handleLogin() {
+      const username = document.getElementById("loginUsername").value.trim();
+      const password = document.getElementById("loginPassword").value.trim();
+      document.getElementById("loginError").textContent = "";
+
+      if (username.length < 3 || password.length < 6) {
+        document.getElementById("loginError").textContent = "Usuario mínimo 3 caracteres y contraseña mínimo 6.";
+        return;
+      }
+      try {
+        const res = await fetch(`${API}/auth/login`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (!data.token) throw new Error("Credenciales inválidas");
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("userId", data.id);
+        localStorage.setItem("username", data.username);
+        showAppScreen();
+      } catch (e) {
+        document.getElementById("loginError").textContent = e.message;
+      }
+    }
+
+    async function handleRegister() {
+      const username = document.getElementById("regUsername").value.trim();
+      const password = document.getElementById("regPassword").value.trim();
+      document.getElementById("regError").textContent = "";
+
+      if (username.length < 3 || password.length < 6) {
+        document.getElementById("regError").textContent = "Usuario mínimo 3 caracteres y contraseña mínimo 6.";
+        return;
+      }
+      try {
+        const res = await fetch(`${API}/auth/register`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ username, password })
+        });
+        const data = await res.json();
+        if (!data.token) throw new Error("No se pudo registrar");
+        localStorage.setItem("authToken", data.token);
+        localStorage.setItem("userId", data.id);
+        localStorage.setItem("username", data.username);
+        showAppScreen();
+      } catch (e) {
+        document.getElementById("regError").textContent = e.message;
+      }
+    }
+
+    function handleLogout() {
+      localStorage.clear();
+      showAuthScreen();
+      document.getElementById("loginForm").classList.remove("hidden");
+      document.getElementById("registerForm").classList.add("hidden");
+    }
+
+    // App
+    function showAppScreen() {
+      document.getElementById("authScreen").classList.add("hidden");
+      document.getElementById("appScreen").style.display = "contents";
+      document.getElementById("libraryScreen").classList.add("hidden");
+      checkBackendStatus();
+      if (!statusInterval) {
+        statusInterval = setInterval(checkBackendStatus, 10000);
+      }
+    }
+
+    async function checkBackendStatus() {
+      const statusDot = document.getElementById("statusDot");
+      const statusText = document.getElementById("statusText");
+      if (!statusDot || !statusText) return;
+      try {
+        const res = await fetch(`${API}/health`);
+        if (!res.ok) throw new Error("offline");
+        statusDot.classList.add("online");
+        statusText.textContent = "Backend: online";
+      } catch (e) {
+        statusDot.classList.remove("online");
+        statusText.textContent = "Backend: offline";
+      }
+    }
+
+    async function handleGenerate() {
+      const btn = document.getElementById("generateBtn");
+      btn.disabled = true;
+      btn.textContent = "Generando...";
+      try {
+        const res = await fetch(`${API}/generate`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: document.getElementById("prompt").value,
+            theme: document.getElementById("theme").value,
+            platforms: ["Windows", "Mac", "Linux", "Android", "iOS"],
+            enable_ar_vr: document.getElementById("arVr").checked,
+            multiplayer_mode: document.getElementById("multiplayer").value,
+            player_skill_level: document.getElementById("skillLevel").value,
+            user_id: localStorage.getItem("userId") || null
+          })
+        });
+        const data = await res.json();
+        document.getElementById("responsePanel").textContent = JSON.stringify(data, null, 2);
+        if (data && data.payload) {
+          lastPayload = data.payload;
+          lastWorldId = data.world_id;
+          renderWorld(data.payload);
+          updateUiFromPayload(data.payload);
+        }
+      } catch (e) {
+        document.getElementById("responsePanel").textContent = "Error: " + e.message;
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Generar mundo";
+      }
+    }
+
+    function updateUiFromPayload(payload) {
+      updateMissions(payload.world?.missions || []);
+      updateMods(payload.mods || []);
+      renderMiniMap();
+    }
+
+    function updateMissions(missions) {
+      const list = document.getElementById("missionsList");
+      if (!list) return;
+      if (missions.length === 0) {
+        list.innerHTML = "<li>Sin misiones</li>";
+        return;
+      }
+      list.innerHTML = missions
+        .map((m) => `<li><strong>${m.name}</strong><br/>${m.objective}</li>`)
+        .join("");
+    }
+
+    function updateMods(mods) {
+      const list = document.getElementById("modsList");
+      if (!list) return;
+      if (mods.length === 0) {
+        list.innerHTML = "<li>Sin mods</li>";
+        return;
+      }
+      list.innerHTML = mods
+        .map((m) => `<li><strong>${m.name}</strong><br/>${m.description}</li>`)
+        .join("");
+    }
+
+    async function sendNpcMessage() {
+      const input = document.getElementById("npcInput");
+      const chat = document.getElementById("npcChat");
+      if (!input || !chat) return;
+      const text = input.value.trim();
+      if (!text) return;
+
+      chat.innerHTML = `${chat.innerHTML}<li><strong>Tú:</strong> ${text}</li>`;
+      input.value = "";
+
+      npcHistory.push({ role: "user", content: text });
+
+      try {
+        const res = await fetch(`${API}/npc/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: text,
+            history: npcHistory.slice(-6),
+            world_summary: lastPayload?.world?.summary || null
+          })
+        });
+
+        const data = await res.json();
+        const reply = data.reply || "No pude responder";
+        npcHistory.push({ role: "assistant", content: reply });
+        chat.innerHTML = `${chat.innerHTML}<li><strong>NPC:</strong> ${reply}</li>`;
+      } catch (e) {
+        chat.innerHTML = `${chat.innerHTML}<li><strong>NPC:</strong> Error de conexión</li>`;
+      }
+    }
+
+    function exportJson() {
+      if (!lastPayload) return;
+      const blob = new Blob([JSON.stringify(lastPayload, null, 2)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `datashark-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function exportGltf() {
+      const blob = new Blob(["{\"note\":\"glTF export stub\"}"], { type: "model/gltf+json" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `datashark-${Date.now()}.gltf`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function initBabylon() {
+      if (babylonEngine && babylonScene) return;
+      if (!window.BABYLON || window.__babylonFailed) return;
+
+      const container = document.getElementById("canvas");
+      container.innerHTML = "";
+      const canvas = document.createElement("canvas");
+      canvas.style.width = "100%";
+      canvas.style.height = "100%";
+      container.appendChild(canvas);
+
+      babylonEngine = new BABYLON.Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
+      babylonScene = new BABYLON.Scene(babylonEngine);
+      babylonScene.clearColor = new BABYLON.Color4(0.02, 0.03, 0.07, 1);
+
+      // Enhanced camera with smooth controls
+      const camera = new BABYLON.ArcRotateCamera("cam", Math.PI / 4, Math.PI / 3, 14, new BABYLON.Vector3(0, 0, 0), babylonScene);
+      camera.attachControl(canvas, true);
+      camera.wheelPrecision = 50;
+      camera.lowerRadiusLimit = 5;
+      camera.upperRadiusLimit = 30;
+
+      // Enhanced lighting system
+      const hemiLight = new BABYLON.HemisphericLight("hemiLight", new BABYLON.Vector3(0, 1, 0), babylonScene);
+      hemiLight.intensity = 0.6;
+      hemiLight.groundColor = new BABYLON.Color3(0.1, 0.1, 0.2);
+
+      const dirLight = new BABYLON.DirectionalLight("dirLight", new BABYLON.Vector3(-1, -2, -1), babylonScene);
+      dirLight.intensity = 0.7;
+      dirLight.diffuse = new BABYLON.Color3(1, 0.9, 0.8);
+
+      const pointLight = new BABYLON.PointLight("pointLight", new BABYLON.Vector3(0, 5, 0), babylonScene);
+      pointLight.intensity = 0.4;
+      pointLight.diffuse = new BABYLON.Color3(0.4, 0.6, 1.0);
+
+      // Add fog for atmosphere
+      babylonScene.fogMode = BABYLON.Scene.FOGMODE_EXP;
+      babylonScene.fogDensity = 0.02;
+      babylonScene.fogColor = new BABYLON.Color3(0.02, 0.03, 0.07);
+
+      // Add glow layer for emissive materials
+      const glowLayer = new BABYLON.GlowLayer("glow", babylonScene);
+      glowLayer.intensity = 0.5;
+
+      babylonEngine.runRenderLoop(() => {
+        babylonScene.render();
+      });
+
+      window.addEventListener("resize", () => {
+        babylonEngine.resize();
+      });
+    }
+
+    function clearBabylonWorld() {
+      babylonMeshes.forEach((mesh) => mesh.dispose());
+      babylonMeshes = [];
+    }
+
+    function renderWorldBabylon(payload) {
+      initBabylon();
+      if (!babylonScene) return false;
+      clearBabylonWorld();
+
+      const world = payload.world || {};
+      const levels = world.levels || [];
+      const npcs = world.npcs || [];
+      const enemies = world.enemies || [];
+      const zones = world.zones || [];
+      const missions = world.missions || [];
+      const props = world.props || [];
+      const lighting = world.lighting || {};
+
+      // Apply dynamic lighting from world config
+      if (lighting.time_of_day) {
+        const timeColors = {
+          'dawn': new BABYLON.Color3(1.0, 0.6, 0.4),
+          'day': new BABYLON.Color3(1.0, 0.95, 0.9),
+          'dusk': new BABYLON.Color3(0.8, 0.4, 0.6),
+          'night': new BABYLON.Color3(0.2, 0.2, 0.4)
+        };
+        const dirLight = babylonScene.getLightByName("dirLight");
+        if (dirLight && timeColors[lighting.time_of_day]) {
+          dirLight.diffuse = timeColors[lighting.time_of_day];
+        }
+      }
+
+      // Apply fog settings
+      if (lighting.fog_density) {
+        babylonScene.fogDensity = lighting.fog_density;
+      }
+
+      // Apply color grading
+      if (lighting.color_grade) {
+        const gradeColors = {
+          'neon-cool': new BABYLON.Color4(0.5, 0.7, 1.0, 1),
+          'warm-sunset': new BABYLON.Color4(1.0, 0.6, 0.4, 1),
+          'cold-blue': new BABYLON.Color4(0.4, 0.5, 0.8, 1),
+          'dramatic-red': new BABYLON.Color4(0.9, 0.3, 0.3, 1)
+        };
+        if (gradeColors[lighting.color_grade]) {
+          babylonScene.clearColor = gradeColors[lighting.color_grade];
+        }
+      }
+
+      // Ground with improved material
+      const ground = BABYLON.MeshBuilder.CreateGround("ground", { width: 100, height: 100 }, babylonScene);
+      const groundMat = new BABYLON.StandardMaterial("groundMat", babylonScene);
+      groundMat.diffuseColor = new BABYLON.Color3(0.15, 0.2, 0.15);
+      groundMat.specularColor = new BABYLON.Color3(0.1, 0.1, 0.1);
+      groundMat.roughness = 0.8;
+      ground.material = groundMat;
+      ground.position.y = -1.2;
+      babylonMeshes.push(ground);
+
+      // Add particle system for atmosphere
+      const particleSystem = new BABYLON.ParticleSystem("particles", 2000, babylonScene);
+      particleSystem.particleTexture = new BABYLON.Texture("https://playground.babylonjs.com/textures/flare.png", babylonScene);
+      particleSystem.emitter = new BABYLON.Vector3(0, 5, 0);
+      particleSystem.minEmitBox = new BABYLON.Vector3(-20, 0, -20);
+      particleSystem.maxEmitBox = new BABYLON.Vector3(20, 0, 20);
+      particleSystem.color1 = new BABYLON.Color4(0.7, 0.8, 1.0, 0.3);
+      particleSystem.color2 = new BABYLON.Color4(0.2, 0.5, 1.0, 0.1);
+      particleSystem.colorDead = new BABYLON.Color4(0, 0, 0.2, 0.0);
+      particleSystem.minSize = 0.1;
+      particleSystem.maxSize = 0.3;
+      particleSystem.minLifeTime = 2;
+      particleSystem.maxLifeTime = 4;
+      particleSystem.emitRate = 100;
+      particleSystem.blendMode = BABYLON.ParticleSystem.BLENDMODE_ONEONE;
+      particleSystem.gravity = new BABYLON.Vector3(0, -0.5, 0);
+      particleSystem.direction1 = new BABYLON.Vector3(-1, 1, -1);
+      particleSystem.direction2 = new BABYLON.Vector3(1, 1, 1);
+      particleSystem.minAngularSpeed = 0;
+      particleSystem.maxAngularSpeed = Math.PI;
+      particleSystem.minEmitPower = 0.2;
+      particleSystem.maxEmitPower = 0.6;
+      particleSystem.updateSpeed = 0.005;
+      particleSystem.start();
+
+      levels.forEach((level, index) => {
+        const box = BABYLON.MeshBuilder.CreateBox(`level-${index}`, { size: 1.5 }, babylonScene);
+        box.scaling = new BABYLON.Vector3(1.5, 0.6, 1.5);
+        box.position = new BABYLON.Vector3(index * 3.5 - 3, 0, 0);
+        const mat = new BABYLON.StandardMaterial(`level-mat-${index}`, babylonScene);
+        mat.diffuseColor = new BABYLON.Color3(0.18, 0.65, 1.0);
+        mat.emissiveColor = new BABYLON.Color3(0.05, 0.15, 0.3);
+        box.material = mat;
+        babylonMeshes.push(box);
+      });
+
+      zones.forEach((zone, index) => {
+        // Zone base
+        const box = BABYLON.MeshBuilder.CreateBox(`zone-${index}`, { size: 1.2 }, babylonScene);
+        box.scaling = new BABYLON.Vector3(1.2, 0.3, 1.2);
+        box.position = new BABYLON.Vector3(index * 3.2 - 3.2, -0.2, -2.5);
+        const mat = new BABYLON.StandardMaterial(`zone-mat-${index}`, babylonScene);
+        mat.diffuseColor = new BABYLON.Color3(0.45, 0.55, 0.9);
+        box.material = mat;
+        babylonMeshes.push(box);
+
+        // Zone buildings
+        if (zone.buildings) {
+          zone.buildings.forEach((building, bIndex) => {
+            const buildingMesh = BABYLON.MeshBuilder.CreateBox(
+              `building-${index}-${bIndex}`,
+              { height: building.height || 5, width: building.width || 2, depth: building.depth || 2 },
+              babylonScene
+            );
+            buildingMesh.position = new BABYLON.Vector3(
+              (building.position?.x || 0) * 0.1 + index * 3.2 - 3.2,
+              (building.height || 5) / 2,
+              (building.position?.z || 0) * 0.1 - 2.5
+            );
+            const buildingMat = new BABYLON.StandardMaterial(`building-mat-${index}-${bIndex}`, babylonScene);
+            buildingMat.diffuseColor = BABYLON.Color3.FromHexString(building.color || "#888888");
+            buildingMesh.material = buildingMat;
+            babylonMeshes.push(buildingMesh);
+          });
+        }
+      });
+
+      missions.forEach((mission, index) => {
+        const sphere = BABYLON.MeshBuilder.CreateSphere(`mission-${index}`, { diameter: 0.8 }, babylonScene);
+        sphere.position = new BABYLON.Vector3(index * 2.6 - 2.6, 0.4, 2.2);
+        const mat = new BABYLON.StandardMaterial(`mission-mat-${index}`, babylonScene);
+        
+        // Color based on difficulty
+        if (mission.difficulty === 'easy') {
+          mat.diffuseColor = new BABYLON.Color3(0.3, 0.9, 0.3);
+        } else if (mission.difficulty === 'medium') {
+          mat.diffuseColor = new BABYLON.Color3(0.98, 0.85, 0.25);
+        } else if (mission.difficulty === 'hard') {
+          mat.diffuseColor = new BABYLON.Color3(0.98, 0.3, 0.25);
+        } else {
+          mat.diffuseColor = new BABYLON.Color3(0.98, 0.85, 0.25);
+        }
+        mat.emissiveColor = new BABYLON.Color3(0.2, 0.15, 0);
+        sphere.material = mat;
+        
+        // Add floating animation
+        let yPos = 0;
+        babylonScene.registerBeforeRender(() => {
+          if (sphere) {
+            yPos += 0.02;
+            sphere.position.y = 0.4 + Math.sin(yPos) * 0.2;
+          }
+        });
+        
+        babylonMeshes.push(sphere);
+      });
+
+      npcs.forEach((npc, index) => {
+        // NPC body
+        const sphere = BABYLON.MeshBuilder.CreateSphere(`npc-${index}`, { diameter: 0.9 }, babylonScene);
+        sphere.position = new BABYLON.Vector3(index * 2.2 - 2, 0.6, 3.5);
+        const mat = new BABYLON.StandardMaterial(`npc-mat-${index}`, babylonScene);
+        
+        // Color based on role
+        if (npc.role === 'Guide') {
+          mat.diffuseColor = new BABYLON.Color3(0.13, 0.77, 0.96);
+        } else if (npc.role === 'Merchant') {
+          mat.diffuseColor = new BABYLON.Color3(0.95, 0.77, 0.13);
+        } else if (npc.role === 'Warrior') {
+          mat.diffuseColor = new BABYLON.Color3(0.95, 0.2, 0.2);
+        } else if (npc.role === 'Healer') {
+          mat.diffuseColor = new BABYLON.Color3(0.9, 0.3, 0.9);
+        } else {
+          mat.diffuseColor = new BABYLON.Color3(0.13, 0.77, 0.36);
+        }
+        mat.emissiveColor = new BABYLON.Color3(0.1, 0.15, 0.1);
+        sphere.material = mat;
+        
+        // Add head/marker
+        const marker = BABYLON.MeshBuilder.CreateCylinder(`npc-marker-${index}`, { diameterTop: 0.1, diameterBottom: 0.3, height: 0.5 }, babylonScene);
+        marker.position = new BABYLON.Vector3(index * 2.2 - 2, 1.2, 3.5);
+        marker.material = mat;
+        babylonMeshes.push(marker);
+        
+        babylonMeshes.push(sphere);
+      });
+
+      enemies.forEach((enemy, index) => {
+        const cone = BABYLON.MeshBuilder.CreateCylinder(`enemy-${index}`, { diameterTop: 0, diameterBottom: 1, height: 1.6, tessellation: 24 }, babylonScene);
+        cone.position = new BABYLON.Vector3(index * 2.2 - 2, 0.8, -3.5);
+        const mat = new BABYLON.StandardMaterial(`enemy-mat-${index}`, babylonScene);
+        
+        // Color based on tier
+        if (enemy.tier === 1) {
+          mat.diffuseColor = new BABYLON.Color3(0.98, 0.65, 0.1);
+        } else if (enemy.tier === 2) {
+          mat.diffuseColor = new BABYLON.Color3(0.98, 0.35, 0.1);
+        } else {
+          mat.diffuseColor = new BABYLON.Color3(0.98, 0.1, 0.1);
+        }
+        mat.emissiveColor = new BABYLON.Color3(0.3, 0.05, 0);
+        cone.material = mat;
+        
+        // Add rotation animation
+        let rotation = 0;
+        babylonScene.registerBeforeRender(() => {
+          if (cone) {
+            rotation += 0.01;
+            cone.rotation.y = rotation;
+          }
+        });
+        
+        babylonMeshes.push(cone);
+      });
+
+      props.forEach((prop, index) => {
+        const box = BABYLON.MeshBuilder.CreateBox(`prop-${index}`, { size: 0.8 }, babylonScene);
+        box.scaling = new BABYLON.Vector3(0.5, 1.0, 0.5);
+        box.position = new BABYLON.Vector3(index * 2.4 - 2.4, 0.4, 0.8);
+        const mat = new BABYLON.StandardMaterial(`prop-mat-${index}`, babylonScene);
+        
+        // Color based on type
+        if (prop.type === 'loot') {
+          mat.diffuseColor = new BABYLON.Color3(1.0, 0.84, 0.0);
+          mat.emissiveColor = new BABYLON.Color3(0.3, 0.25, 0);
+        } else if (prop.type === 'utility') {
+          mat.diffuseColor = new BABYLON.Color3(0.3, 0.85, 1.0);
+        } else if (prop.type === 'transport') {
+          mat.diffuseColor = new BABYLON.Color3(0.7, 0.3, 1.0);
+        } else {
+          mat.diffuseColor = new BABYLON.Color3(0.7, 0.85, 1.0);
+        }
+        box.material = mat;
+        babylonMeshes.push(box);
+      });
+
+      // Render items
+      if (payload.items) {
+        payload.items.forEach((item, index) => {
+          const itemMesh = BABYLON.MeshBuilder.CreateSphere(`item-${index}`, { diameter: 0.5 }, babylonScene);
+          itemMesh.position = new BABYLON.Vector3(
+            (item.position?.x || 0) * 0.08,
+            item.position?.y || 0.5,
+            (item.position?.z || 0) * 0.08
+          );
+          const itemMat = new BABYLON.StandardMaterial(`item-mat-${index}`, babylonScene);
+          
+          // Color based on rarity
+          if (item.rarity === 'common') {
+            itemMat.diffuseColor = new BABYLON.Color3(0.8, 0.8, 0.8);
+          } else if (item.rarity === 'uncommon') {
+            itemMat.diffuseColor = new BABYLON.Color3(0.3, 0.9, 0.3);
+          } else if (item.rarity === 'rare') {
+            itemMat.diffuseColor = new BABYLON.Color3(0.3, 0.5, 1.0);
+          } else if (item.rarity === 'epic') {
+            itemMat.diffuseColor = new BABYLON.Color3(0.8, 0.3, 1.0);
+          } else if (item.rarity === 'legendary') {
+            itemMat.diffuseColor = new BABYLON.Color3(1.0, 0.6, 0.0);
+          }
+          itemMat.emissiveColor = itemMat.diffuseColor.scale(0.3);
+          itemMesh.material = itemMat;
+          
+          // Add rotation and floating
+          let rotY = 0;
+          let floatY = 0;
+          babylonScene.registerBeforeRender(() => {
+            if (itemMesh) {
+              rotY += 0.03;
+              floatY += 0.02;
+              itemMesh.rotation.y = rotY;
+              itemMesh.position.y = (item.position?.y || 0.5) + Math.sin(floatY) * 0.15;
+            }
+          });
+          
+          babylonMeshes.push(itemMesh);
+        });
+      }
+
+      // Render obstacles
+      if (payload.obstacles) {
+        payload.obstacles.forEach((obstacle, index) => {
+          const obstacleMesh = BABYLON.MeshBuilder.CreateBox(`obstacle-${index}`, { 
+            width: obstacle.size || 2, 
+            height: obstacle.size || 2, 
+            depth: obstacle.size || 2 
+          }, babylonScene);
+          obstacleMesh.position = new BABYLON.Vector3(
+            (obstacle.position?.x || 0) * 0.08,
+            (obstacle.size || 2) / 2,
+            (obstacle.position?.z || 0) * 0.08
+          );
+          const obstacleMat = new BABYLON.StandardMaterial(`obstacle-mat-${index}`, babylonScene);
+          obstacleMat.diffuseColor = new BABYLON.Color3(0.4, 0.35, 0.3);
+          
+          if (obstacle.destructible) {
+            obstacleMat.emissiveColor = new BABYLON.Color3(0.1, 0.05, 0);
+          }
+          
+          obstacleMesh.material = obstacleMat;
+          babylonMeshes.push(obstacleMesh);
+        });
+      }
+
+      return true;
+    }
+
+    function initWebGL() {
+      if (gl) return;
+
+      const container = document.getElementById("canvas");
+      container.innerHTML = "";
+      canvasElement = document.createElement("canvas");
+      canvasElement.width = container.clientWidth;
+      canvasElement.height = container.clientHeight;
+      container.appendChild(canvasElement);
+
+      gl = canvasElement.getContext("webgl");
+      if (!gl) {
+        container.textContent = "WebGL no está disponible en este navegador.";
+        return;
+      }
+
+      const vertexShaderSource = `
+        attribute vec3 aPosition;
+        uniform mat4 uProjection;
+        uniform mat4 uView;
+        uniform mat4 uModel;
+        void main() {
+          gl_Position = uProjection * uView * uModel * vec4(aPosition, 1.0);
+        }
+      `;
+
+      const fragmentShaderSource = `
+        precision mediump float;
+        uniform vec3 uColor;
+        void main() {
+          gl_FragColor = vec4(uColor, 1.0);
+        }
+      `;
+
+      const vertexShader = compileShader(gl.VERTEX_SHADER, vertexShaderSource);
+      const fragmentShader = compileShader(gl.FRAGMENT_SHADER, fragmentShaderSource);
+      shaderProgram = createProgram(vertexShader, fragmentShader);
+      gl.useProgram(shaderProgram);
+
+      const cubeVertices = new Float32Array([
+        -1, -1,  1,  1, -1,  1,  1,  1,  1,  -1, -1,  1,  1,  1,  1,  -1,  1,  1,
+        -1, -1, -1, -1,  1, -1,  1,  1, -1,  -1, -1, -1,  1,  1, -1,  1, -1, -1,
+        -1,  1, -1, -1,  1,  1,  1,  1,  1,  -1,  1, -1,  1,  1,  1,  1,  1, -1,
+        -1, -1, -1,  1, -1, -1,  1, -1,  1,  -1, -1, -1,  1, -1,  1,  -1, -1,  1,
+         1, -1, -1,  1,  1, -1,  1,  1,  1,   1, -1, -1,  1,  1,  1,   1, -1,  1,
+        -1, -1, -1, -1, -1,  1, -1,  1,  1,  -1, -1, -1, -1,  1,  1,  -1,  1, -1
+      ]);
+
+      positionBuffer = gl.createBuffer();
+      gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+      gl.bufferData(gl.ARRAY_BUFFER, cubeVertices, gl.STATIC_DRAW);
+
+      const positionLocation = gl.getAttribLocation(shaderProgram, "aPosition");
+      gl.enableVertexAttribArray(positionLocation);
+      gl.vertexAttribPointer(positionLocation, 3, gl.FLOAT, false, 0, 0);
+
+      gl.enable(gl.DEPTH_TEST);
+
+      window.addEventListener("resize", () => {
+        if (!canvasElement) return;
+        canvasElement.width = container.clientWidth;
+        canvasElement.height = container.clientHeight;
+        gl.viewport(0, 0, canvasElement.width, canvasElement.height);
+      });
+
+      gl.viewport(0, 0, canvasElement.width, canvasElement.height);
+    }
+
+    function compileShader(type, source) {
+      const shader = gl.createShader(type);
+      gl.shaderSource(shader, source);
+      gl.compileShader(shader);
+      if (!gl.getShaderParameter(shader, gl.COMPILE_STATUS)) {
+        console.error(gl.getShaderInfoLog(shader));
+      }
+      return shader;
+    }
+
+    function createProgram(vertexShader, fragmentShader) {
+      const program = gl.createProgram();
+      gl.attachShader(program, vertexShader);
+      gl.attachShader(program, fragmentShader);
+      gl.linkProgram(program);
+      if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+        console.error(gl.getProgramInfoLog(program));
+      }
+      return program;
+    }
+
+    function mat4Identity() {
+      return [
+        1, 0, 0, 0,
+        0, 1, 0, 0,
+        0, 0, 1, 0,
+        0, 0, 0, 1
+      ];
+    }
+
+    function mat4Multiply(a, b) {
+      const out = new Array(16).fill(0);
+      for (let row = 0; row < 4; row++) {
+        for (let col = 0; col < 4; col++) {
+          for (let i = 0; i < 4; i++) {
+            out[row * 4 + col] += a[row * 4 + i] * b[i * 4 + col];
+          }
+        }
+      }
+      return out;
+    }
+
+    function mat4Translate(x, y, z) {
+      const out = mat4Identity();
+      out[12] = x;
+      out[13] = y;
+      out[14] = z;
+      return out;
+    }
+
+    function mat4Scale(x, y, z) {
+      const out = mat4Identity();
+      out[0] = x;
+      out[5] = y;
+      out[10] = z;
+      return out;
+    }
+
+    function mat4RotateY(rad) {
+      const c = Math.cos(rad);
+      const s = Math.sin(rad);
+      return [
+        c, 0, -s, 0,
+        0, 1, 0, 0,
+        s, 0, c, 0,
+        0, 0, 0, 1
+      ];
+    }
+
+    function mat4Perspective(fov, aspect, near, far) {
+      const f = 1.0 / Math.tan(fov / 2);
+      const rangeInv = 1 / (near - far);
+      return [
+        f / aspect, 0, 0, 0,
+        0, f, 0, 0,
+        0, 0, (near + far) * rangeInv, -1,
+        0, 0, near * far * rangeInv * 2, 0
+      ];
+    }
+
+    function mat4LookAt(eye, target, up) {
+      const zAxis = normalize(subtract(eye, target));
+      const xAxis = normalize(cross(up, zAxis));
+      const yAxis = cross(zAxis, xAxis);
+      return [
+        xAxis[0], yAxis[0], zAxis[0], 0,
+        xAxis[1], yAxis[1], zAxis[1], 0,
+        xAxis[2], yAxis[2], zAxis[2], 0,
+        -dot(xAxis, eye), -dot(yAxis, eye), -dot(zAxis, eye), 1
+      ];
+    }
+
+    function subtract(a, b) {
+      return [a[0] - b[0], a[1] - b[1], a[2] - b[2]];
+    }
+
+    function cross(a, b) {
+      return [
+        a[1] * b[2] - a[2] * b[1],
+        a[2] * b[0] - a[0] * b[2],
+        a[0] * b[1] - a[1] * b[0]
+      ];
+    }
+
+    function dot(a, b) {
+      return a[0] * b[0] + a[1] * b[1] + a[2] * b[2];
+    }
+
+    function normalize(v) {
+      const len = Math.hypot(v[0], v[1], v[2]) || 1;
+      return [v[0] / len, v[1] / len, v[2] / len];
+    }
+
+    function renderWorld(payload) {
+      if (window.BABYLON && !window.__babylonFailed) {
+        const ok = renderWorldBabylon(payload);
+        if (ok) return;
+      }
+      initWebGL();
+      if (!gl) return;
+
+      const world = payload.world || {};
+      const levels = world.levels || [];
+      const npcs = world.npcs || [];
+      const enemies = world.enemies || [];
+      const zones = world.zones || [];
+      const missions = world.missions || [];
+      const props = world.props || [];
+
+      objects = [];
+
+      objects.push({
+        position: [0, -1.2, 0],
+        scale: [12, 0.2, 12],
+        color: [0.06, 0.1, 0.16]
+      });
+
+      levels.forEach((level, index) => {
+        objects.push({
+          position: [index * 3.5 - 3, 0, 0],
+          scale: [1.5, 0.6, 1.5],
+          color: [0.18, 0.65, 1.0]
+        });
+      });
+
+      zones.forEach((zone, index) => {
+        objects.push({
+          position: [index * 3.2 - 3.2, -0.2, -2.5],
+          scale: [1.2, 0.3, 1.2],
+          color: [0.45, 0.55, 0.9]
+        });
+      });
+
+      missions.forEach((mission, index) => {
+        objects.push({
+          position: [index * 2.6 - 2.6, 0.2, 2.2],
+          scale: [0.6, 0.6, 0.6],
+          color: [0.98, 0.85, 0.25]
+        });
+      });
+
+      npcs.forEach((npc, index) => {
+        objects.push({
+          position: [index * 2.2 - 2, 0.5, 3.5],
+          scale: [0.6, 0.6, 0.6],
+          color: [0.13, 0.77, 0.36]
+        });
+      });
+
+      enemies.forEach((enemy, index) => {
+        objects.push({
+          position: [index * 2.2 - 2, 0.6, -3.5],
+          scale: [0.7, 0.9, 0.7],
+          color: [0.98, 0.45, 0.1]
+        });
+      });
+
+      props.forEach((prop, index) => {
+        objects.push({
+          position: [index * 2.4 - 2.4, 0.4, 0.8],
+          scale: [0.5, 1.0, 0.5],
+          color: [0.7, 0.85, 1.0]
+        });
+      });
+
+      if (!animationId) {
+        animateScene();
+      }
+    }
+
+    function animateScene() {
+      if (!gl) return;
+      animationId = requestAnimationFrame(animateScene);
+      angle += 0.008;
+      gl.clearColor(0.02, 0.03, 0.07, 1);
+      gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+
+      const aspect = canvasElement.width / canvasElement.height;
+      const projection = mat4Perspective(Math.PI / 3, aspect, 0.1, 100);
+      const view = mat4LookAt([8, 6, 10], [0, 0, 0], [0, 1, 0]);
+      const rotation = mat4RotateY(angle);
+
+      const uProjection = gl.getUniformLocation(shaderProgram, "uProjection");
+      const uView = gl.getUniformLocation(shaderProgram, "uView");
+      const uModel = gl.getUniformLocation(shaderProgram, "uModel");
+      const uColor = gl.getUniformLocation(shaderProgram, "uColor");
+
+      gl.uniformMatrix4fv(uProjection, false, new Float32Array(projection));
+      gl.uniformMatrix4fv(uView, false, new Float32Array(view));
+
+      objects.forEach((obj) => {
+        const translate = mat4Translate(obj.position[0], obj.position[1], obj.position[2]);
+        const scale = mat4Scale(obj.scale[0], obj.scale[1], obj.scale[2]);
+        const model = mat4Multiply(rotation, mat4Multiply(translate, scale));
+        gl.uniformMatrix4fv(uModel, false, new Float32Array(model));
+        gl.uniform3fv(uColor, new Float32Array(obj.color));
+        gl.drawArrays(gl.TRIANGLES, 0, 36);
+      });
+    }
+
+    function renderMiniMap() {
+      const canvas = document.getElementById("miniMap");
+      if (!canvas) return;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) return;
+      canvas.width = canvas.clientWidth;
+      canvas.height = canvas.clientHeight;
+      ctx.fillStyle = "#0a1022";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+      ctx.fillStyle = "#2ea6ff";
+      objects.forEach((obj) => {
+        const x = (obj.position[0] + 6) / 12 * canvas.width;
+        const y = (obj.position[2] + 6) / 12 * canvas.height;
+        ctx.beginPath();
+        ctx.arc(x, y, 4, 0, Math.PI * 2);
+        ctx.fill();
+      });
+    }
+
+    // Library
+    function goToLibrary() {
+      document.getElementById("authScreen").classList.add("hidden");
+      document.getElementById("appScreen").style.display = "none";
+      document.getElementById("libraryScreen").classList.remove("hidden");
+      loadWorldsList();
+      loadMods();
+      loadVersions(lastWorldId);
+    }
+
+    function goToHome() {
+      showAppScreen();
+    }
+
+    async function loadWorldsList() {
+      const userId = localStorage.getItem("userId");
+      try {
+        const res = await fetch(`${API}/worlds?user_id=${userId}`);
+        const data = await res.json();
+        const list = document.getElementById("worldsList");
+        const worlds = data.worlds || [];
+        if (worlds.length === 0) {
+          list.innerHTML = `<p class="empty-state">No tienes mundos guardados aún.</p>`;
+          return;
+        }
+        list.innerHTML = worlds.map(w => `
+          <div class="world-card">
+            <h3 class="world-card-title">${w.summary}</h3>
+            <p class="world-card-meta">${new Date(w.created_at).toLocaleDateString()}</p>
+            <p class="world-card-meta">ID: ${w.id}</p>
+            <div class="world-card-actions">
+              <button onclick="goToHome(); return false;">Ver</button>
+              <button onclick="publishWorld('${w.id}')" class="button-secondary">🌍 Publicar</button>
+            </div>
+          </div>
+        `).join("");
+      } catch (e) {
+        document.getElementById("worldsList").innerHTML = `<p class="error">${e.message}</p>`;
+      }
+    }
+
+    async function loadVersions(worldId) {
+      const list = document.getElementById("versionsList");
+      if (!list) return;
+      if (!worldId) {
+        list.innerHTML = "<li>Sin versiones</li>";
+        return;
+      }
+      try {
+        const res = await fetch(`${API}/worlds/${worldId}/versions`);
+        const data = await res.json();
+        list.innerHTML = (data.versions || []).map(v => `<li>${v.label}</li>`).join("");
+      } catch (e) {
+        list.innerHTML = "<li>Error cargando versiones</li>";
+      }
+    }
+
+    async function loadMods() {
+      const list = document.getElementById("modsList");
+      if (!list) return;
+      try {
+        const res = await fetch(`${API}/mods`);
+        const data = await res.json();
+        updateMods(data.mods || []);
+      } catch (e) {
+        list.innerHTML = "<li>Error cargando mods</li>";
+      }
+    }
+
+    async function createLobby() {
+      const mode = document.getElementById("lobbyMode").value || "co-op";
+      const maxPlayers = Number(document.getElementById("lobbyPlayers").value || 4);
+      try {
+        const res = await fetch(`${API}/lobby`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ mode, max_players: maxPlayers })
+        });
+        const data = await res.json();
+        document.getElementById("lobbyInfo").textContent = `🟢 Lobby ${data.room_id}`;
+      } catch (e) {
+        document.getElementById("lobbyInfo").textContent = "❌ Error";
+      }
+    }
+
+    // Browse & Play
+    function switchTab(tabName) {
+      document.querySelectorAll(".tab-button").forEach(btn => btn.classList.remove("active"));
+      document.querySelectorAll(".tab-content").forEach(content => content.classList.remove("active"));
+
+      const tabButton = document.querySelector(`.tab-button[data-tab="${tabName}"]`);
+      if (tabButton) {
+        tabButton.classList.add("active");
+      }
+
+      const tabContent = document.getElementById(`${tabName}Tab`);
+      if (tabContent) {
+        tabContent.classList.add("active");
+      }
+
+      if (tabName === "myWorlds") {
+        loadWorldsList();
+      } else if (tabName === "browse") {
+        loadBrowseWorlds();
+      } else if (tabName === "saves") {
+        loadSavesList();
+      } else if (tabName === "achievements") {
+        loadAchievements();
+      } else if (tabName === "assets") {
+        loadUserAssets();
+        browsePublicAssets();
+      } else if (tabName === "mods") {
+        loadMods();
+        loadVersions(lastWorldId);
+      }
+    }
+
+    async function loadBrowseWorlds() {
+      const sort = document.getElementById("browseSort").value || "popular";
+      try {
+        const res = await fetch(`${API}/browse?sort=${sort}`);
+        const data = await res.json();
+        const list = document.getElementById("browseWorldsList");
+        const worlds = data.worlds || [];
+        
+        if (worlds.length === 0) {
+          list.innerHTML = `<p class="empty-state">No hay mundos públicos disponibles.</p>`;
+          return;
+        }
+        
+        list.innerHTML = worlds.map(w => `
+          <div class="world-card">
+            <h3 class="world-card-title">${w.summary || "Mundo sin título"}</h3>
+            <p class="world-card-meta">Por: ${w.username || "Anónimo"}</p>
+            <p class="world-card-meta">${new Date(w.created_at).toLocaleDateString()}</p>
+            <div class="world-card-stats">
+              <span>▶️ ${w.play_count || 0} plays</span>
+              <span>❤️ ${w.likes || 0} likes</span>
+            </div>
+            <div class="world-card-actions">
+              <button onclick="playWorld('${w.id}')">▶️ Jugar</button>
+              <button onclick="likeWorld('${w.id}')" class="button-secondary">❤️ Like</button>
+              <button onclick="viewLeaderboard('${w.id}')" class="button-secondary">🏆</button>
+            </div>
+          </div>
+        `).join("");
+      } catch (e) {
+        document.getElementById("browseWorldsList").innerHTML = `<p class="error">Error cargando mundos: ${e.message}</p>`;
+      }
+    }
+
+    async function playWorld(worldId) {
+      try {
+        const res = await fetch(`${API}/worlds/${worldId}/play`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+        const data = await res.json();
+        
+        if (data.error) {
+          alert(`Error: ${data.error}`);
+          return;
+        }
+        
+        // Load world and go to home screen
+        lastPayload = data.payload;
+        lastWorldId = worldId;
+        goToHome();
+        updateUiFromPayload(data.payload);
+        renderWorld(data.payload);
+        
+        alert(`🎮 ¡Mundo cargado! Plays: ${data.play_count}`);
+      } catch (e) {
+        alert(`Error: ${e.message}`);
+      }
+    }
+
+    async function likeWorld(worldId) {
+      try {
+        const res = await fetch(`${API}/worlds/${worldId}/like`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" }
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          alert(`❤️ ¡Te gusta! Total likes: ${data.likes}`);
+          loadBrowseWorlds(); // Refresh list
+        }
+      } catch (e) {
+        alert(`Error: ${e.message}`);
+      }
+    }
+
+    async function viewLeaderboard(worldId) {
+      try {
+        const res = await fetch(`${API}/worlds/${worldId}/leaderboard`);
+        const data = await res.json();
+        const leaderboard = data.leaderboard || [];
+        
+        if (leaderboard.length === 0) {
+          alert("🏆 Leaderboard vacío. ¡Sé el primero!");
+          return;
+        }
+        
+        const text = leaderboard.map((entry, i) => 
+          `${i + 1}. ${entry.username} - ${entry.score} pts (${entry.completed_missions} misiones)`
+        ).join("\n");
+        
+        alert(`🏆 Leaderboard:\n\n${text}`);
+      } catch (e) {
+        alert(`Error: ${e.message}`);
+      }
+    }
+
+    async function publishWorld(worldId) {
+      const userId = localStorage.getItem("userId");
+      try {
+        const res = await fetch(`${API}/worlds/${worldId}/publish`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: userId })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          alert("✅ Mundo publicado. ¡Otros usuarios pueden jugarlo ahora!");
+          loadWorldsList();
+        } else {
+          alert(`Error: ${data.error}`);
+        }
+      } catch (e) {
+        alert(`Error: ${e.message}`);
+      }
+    }
+
+    async function unpublishWorld(worldId) {
+      const userId = localStorage.getItem("userId");
+      try {
+        const res = await fetch(`${API}/worlds/${worldId}/unpublish`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ user_id: userId })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          alert("🔒 Mundo despublicado.");
+          loadWorldsList();
+        }
+      } catch (e) {
+        alert(`Error: ${e.message}`);
+      }
+    }
+
+    async function submitScore(worldId, score, completedMissions, playTime) {
+      const userId = localStorage.getItem("userId");
+      const username = localStorage.getItem("username");
+      
+      try {
+        const res = await fetch(`${API}/worlds/${worldId}/leaderboard`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: userId,
+            username: username,
+            score: score,
+            completed_missions: completedMissions,
+            play_time: playTime
+          })
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          alert(`🏆 ¡Score enviado al leaderboard! ${score} puntos`);
+        }
+      } catch (e) {
+        console.error("Error enviando score:", e);
+      }
+    }
+
+    // ========== SAVE/LOAD SYSTEM ==========
+    
+    async function saveGame(slotNumber, slotName) {
+      const userId = localStorage.getItem("userId");
+      if (!userId || !lastWorldId || !lastPayload) {
+        alert("No hay mundo cargado para guardar");
+        return;
+      }
+      
+      const gameState = {
+        camera_position: babylonScene ? babylonScene.activeCamera.position : {x: 0, y: 0, z: 0},
+        world_payload: lastPayload,
+        timestamp: new Date().toISOString()
+      };
+      
+      const playerStats = {
+        health: 100,
+        mana: 50,
+        level: 1,
+        experience: 0,
+        inventory: ["Basic Sword", "Leather Armor"],
+        position: {x: 0, y: 2, z: 0}
+      };
+      
+      try {
+        const res = await fetch(`${API}/saves/save?user_id=${userId}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            world_id: lastWorldId,
+            slot_name: slotName || `Save ${slotNumber}`,
+            slot_number: slotNumber,
+            game_state: gameState,
+            player_stats: playerStats,
+            progress_percentage: 25.0,
+            play_time: 300
+          })
+        });
+        const data = await res.json();
+        
+        if (data.save_id) {
+          alert(`💾 Guardado en slot ${slotNumber}: ${slotName || 'Save ' + slotNumber}`);
+          loadSavesList();
+        }
+      } catch (e) {
+        alert(`Error guardando: ${e.message}`);
+      }
+    }
+    
+    async function loadSavesList() {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return;
+      
+      try {
+        const res = await fetch(`${API}/saves/list/${userId}`);
+        const saves = await res.json();
+        
+        const savesContainer = document.getElementById("savesList");
+        if (!savesContainer) return;
+        
+        if (saves.length === 0) {
+          savesContainer.innerHTML = '<p class="muted-text">No hay partidas guardadas</p>';
+          return;
+        }
+        
+        savesContainer.innerHTML = saves.map(save => `
+          <div class="save-slot-card">
+            <h4>Slot ${save.slot_number}: ${save.slot_name}</h4>
+            <p>${save.world_name}</p>
+            <p>Progreso: ${save.progress_percentage.toFixed(1)}%</p>
+            <p>Tiempo: ${Math.floor(save.play_time / 60)}min</p>
+            <p class="muted-text">${new Date(save.updated_at).toLocaleString()}</p>
+            <div class="save-actions">
+              <button onclick="loadSaveGame('${save.save_id}')" class="button-success">Cargar</button>
+              <button onclick="deleteSave('${save.save_id}')" class="button-danger">Eliminar</button>
+            </div>
+          </div>
+        `).join("");
+      } catch (e) {
+        console.error("Error cargando saves:", e);
+      }
+    }
+    
+    async function loadSaveGame(saveId) {
+      try {
+        const res = await fetch(`${API}/saves/load/${saveId}`);
+        const save = await res.json();
+        
+        lastPayload = save.game_state.world_payload;
+        lastWorldId = save.world_id;
+        
+        goToHome();
+        updateUiFromPayload(lastPayload);
+        renderWorld(lastPayload);
+        
+        alert(`✅ Partida cargada: ${save.slot_name}`);
+      } catch (e) {
+        alert(`Error cargando partida: ${e.message}`);
+      }
+    }
+    
+    async function deleteSave(saveId) {
+      const userId = localStorage.getItem("userId");
+      if (!confirm("¿Eliminar esta partida guardada?")) return;
+      
+      try {
+        await fetch(`${API}/saves/delete/${saveId}?user_id=${userId}`, { method: "DELETE" });
+        alert("Partida eliminada");
+        loadSavesList();
+      } catch (e) {
+        alert(`Error: ${e.message}`);
+      }
+    }
+    
+    // ========== ACHIEVEMENTS SYSTEM ==========
+    
+    async function loadAchievements() {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return;
+      
+      try {
+        const res = await fetch(`${API}/achievements/user/${userId}`);
+        const achievements = await res.json();
+        
+        const container = document.getElementById("achievementsList");
+        if (!container) return;
+        
+        const unlocked = achievements.filter(a => a.unlocked);
+        const locked = achievements.filter(a => !a.unlocked);
+        
+        container.innerHTML = `
+          <div class="achievement-section">
+            <h4>🏆 Desbloqueados (${unlocked.length}/${achievements.length})</h4>
+            ${unlocked.map(a => `
+              <div class="achievement-card unlocked">
+                <span class="achievement-icon">${a.icon}</span>
+                <div>
+                  <h5>${a.name}</h5>
+                  <p>${a.description}</p>
+                  <span class="achievement-points">+${a.points} pts</span>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+          <div class="achievement-section">
+            <h4>🔒 Bloqueados</h4>
+            ${locked.map(a => `
+              <div class="achievement-card locked">
+                <span class="achievement-icon">${a.icon}</span>
+                <div>
+                  <h5>${a.name}</h5>
+                  <p>${a.description}</p>
+                  <span class="achievement-points">${a.points} pts</span>
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        `;
+        
+        // Load progress
+        const progressRes = await fetch(`${API}/achievements/progress/${userId}`);
+        const progress = await progressRes.json();
+        
+        const progressContainer = document.getElementById("achievementProgress");
+        if (progressContainer) {
+          progressContainer.innerHTML = `
+            <div class="progress-stats">
+              <h4>Tu progreso</h4>
+              <p>Logros: ${progress.unlocked_achievements}/${progress.total_achievements}</p>
+              <p>Puntos: ${progress.earned_points}/${progress.total_points}</p>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: ${progress.completion_percentage}%"></div>
+              </div>
+              <p>${progress.completion_percentage.toFixed(1)}% completado</p>
+            </div>
+          `;
+        }
+      } catch (e) {
+        console.error("Error cargando logros:", e);
+      }
+    }
+    
+    async function unlockAchievement(achievementId) {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return;
+      
+      try {
+        const res = await fetch(`${API}/achievements/unlock/${userId}/${achievementId}`, {
+          method: "POST"
+        });
+        const data = await res.json();
+        
+        if (data.success) {
+          showAchievementNotification(data.achievement);
+          loadAchievements();
+        }
+      } catch (e) {
+        console.error("Error desbloqueando logro:", e);
+      }
+    }
+    
+    function showAchievementNotification(achievement) {
+      const notification = document.createElement("div");
+      notification.className = "achievement-notification";
+      notification.innerHTML = `
+        <div class="achievement-notification-content">
+          <span class="achievement-icon">${achievement.icon}</span>
+          <div>
+            <h4>¡Logro desbloqueado!</h4>
+            <p>${achievement.name}</p>
+            <span>+${achievement.points} pts</span>
+          </div>
+        </div>
+      `;
+      document.body.appendChild(notification);
+      
+      setTimeout(() => notification.classList.add("show"), 100);
+      setTimeout(() => {
+        notification.classList.remove("show");
+        setTimeout(() => notification.remove(), 500);
+      }, 5000);
+    }
+    
+    // ========== CUSTOM ASSETS SYSTEM ==========
+    
+    async function uploadCustomAsset() {
+      const userId = localStorage.getItem("userId");
+      if (!userId) {
+        alert("Debes iniciar sesión");
+        return;
+      }
+      
+      const fileInput = document.getElementById("assetFileInput");
+      const nameInput = document.getElementById("assetName");
+      const typeSelect = document.getElementById("assetType");
+      const descInput = document.getElementById("assetDesc");
+      const publicCheck = document.getElementById("assetPublic");
+      
+      if (!fileInput.files[0]) {
+        alert("Selecciona un archivo");
+        return;
+      }
+      
+      const file = fileInput.files[0];
+      const reader = new FileReader();
+      
+      reader.onload = async (e) => {
+        const base64Data = e.target.result.split(',')[1];
+        
+        try {
+          const res = await fetch(`${API}/assets/upload?user_id=${userId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              asset_name: nameInput.value || file.name,
+              asset_type: typeSelect.value,
+              file_data: base64Data,
+              description: descInput.value,
+              is_public: publicCheck.checked
+            })
+          });
+          const data = await res.json();
+          
+          if (data.success) {
+            alert(`✅ Asset subido: ${data.asset_id}`);
+            loadUserAssets();
+            // Check for modder achievement
+            unlockAchievement("modder");
+          }
+        } catch (e) {
+          alert(`Error: ${e.message}`);
+        }
+      };
+      
+      reader.readAsDataURL(file);
+    }
+    
+    async function loadUserAssets() {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return;
+      
+      try {
+        const res = await fetch(`${API}/assets/list/${userId}`);
+        const assets = await res.json();
+        
+        const container = document.getElementById("userAssetsList");
+        if (!container) return;
+        
+        if (assets.length === 0) {
+          container.innerHTML = '<p class="muted-text">No has subido assets</p>';
+          return;
+        }
+        
+        container.innerHTML = assets.map(asset => `
+          <div class="asset-card">
+            <h4>${asset.asset_name}</h4>
+            <p>Tipo: ${asset.asset_type}</p>
+            <p>Tamaño: ${(asset.file_size / 1024).toFixed(2)} KB</p>
+            <p>❤️ ${asset.likes} | ⬇️ ${asset.downloads}</p>
+            <p class="muted-text">${new Date(asset.created_at).toLocaleDateString()}</p>
+          </div>
+        `).join("");
+      } catch (e) {
+        console.error("Error cargando assets:", e);
+      }
+    }
+    
+    async function browsePublicAssets(type = null) {
+      try {
+        const url = type ? `${API}/assets/browse?asset_type=${type}` : `${API}/assets/browse`;
+        const res = await fetch(url);
+        const assets = await res.json();
+        
+        const container = document.getElementById("publicAssetsList");
+        if (!container) return;
+        
+        if (assets.length === 0) {
+          container.innerHTML = '<p class="muted-text">No hay assets públicos</p>';
+          return;
+        }
+        
+        container.innerHTML = assets.map(asset => `
+          <div class="asset-card">
+            <h4>${asset.asset_name}</h4>
+            <p>Tipo: ${asset.asset_type}</p>
+            <p>${asset.description || "Sin descripción"}</p>
+            <p>❤️ ${asset.likes} | ⬇️ ${asset.downloads}</p>
+            <button onclick="likeAsset('${asset.id}')" class="button-secondary">❤️ Like</button>
+          </div>
+        `).join("");
+      } catch (e) {
+        console.error("Error cargando assets públicos:", e);
+      }
+    }
+    
+    async function likeAsset(assetId) {
+      try {
+        await fetch(`${API}/assets/${assetId}/like`, { method: "POST" });
+        browsePublicAssets();
+      } catch (e) {
+        console.error("Error:", e);
+      }
+    }
+    
+    // ========== SKILL TREE SYSTEM ==========
+    
+    let playerSkillTree = {
+      combat: {
+        strength: 0,
+        endurance: 0,
+        weapon_mastery: 0
+      },
+      magic: {
+        intelligence: 0,
+        mana: 0,
+        spell_power: 0
+      },
+      stealth: {
+        dexterity: 0,
+        stealth: 0,
+        critical_strike: 0
+      }
+    };
+    
+    let skillPoints = 5;
+    
+    function renderSkillTree() {
+      const container = document.getElementById("skillTreeContainer");
+      if (!container) return;
+      
+      container.innerHTML = `
+        <div class="skill-tree-header">
+          <h3>🌟 Árbol de habilidades</h3>
+          <p>Puntos disponibles: <span class="skill-points">${skillPoints}</span></p>
+        </div>
+        
+        <div class="skill-categories">
+          <div class="skill-category">
+            <h4>⚔️ Combate</h4>
+            ${renderSkillCategory("combat")}
+          </div>
+          <div class="skill-category">
+            <h4>✨ Magia</h4>
+            ${renderSkillCategory("magic")}
+          </div>
+          <div class="skill-category">
+            <h4>🗡️ Sigilo</h4>
+            ${renderSkillCategory("stealth")}
+          </div>
+        </div>
+      `;
+    }
+    
+    function renderSkillCategory(category) {
+      return Object.keys(playerSkillTree[category]).map(skill => {
+        const level = playerSkillTree[category][skill];
+        const maxLevel = 5;
+        return `
+          <div class="skill-item">
+            <div class="skill-info">
+              <span>${skill.replace(/_/g, ' ')}</span>
+              <span class="skill-level">${level}/${maxLevel}</span>
+            </div>
+            <div class="skill-buttons">
+              <button onclick="upgradeSkill('${category}', '${skill}')" 
+                      ${level >= maxLevel || skillPoints <= 0 ? 'disabled' : ''} 
+                      class="skill-upgrade-btn">+</button>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+    
+    async function upgradeSkill(category, skill) {
+      if (skillPoints <= 0) return;
+      if (playerSkillTree[category][skill] >= 5) return;
+      
+      playerSkillTree[category][skill]++;
+      skillPoints--;
+      
+      const userId = localStorage.getItem("userId");
+      if (userId && lastWorldId) {
+        try {
+          await fetch(`${API}/skills/update?user_id=${userId}`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              world_id: lastWorldId,
+              skill_id: skill,
+              skill_tree: playerSkillTree
+            })
+          });
+        } catch (e) {
+          console.error("Error guardando skill tree:", e);
+        }
+      }
+      
+      renderSkillTree();
+    }
+    
+    async function loadSkillTree() {
+      const userId = localStorage.getItem("userId");
+      if (!userId || !lastWorldId) return;
+      
+      try {
+        const res = await fetch(`${API}/skills/${userId}/${lastWorldId}`);
+        const data = await res.json();
+        
+        if (data.skill_tree && Object.keys(data.skill_tree).length > 0) {
+          playerSkillTree = data.skill_tree;
+        }
+        renderSkillTree();
+      } catch (e) {
+        console.error("Error cargando skill tree:", e);
+      }
+    }
+    
+    // ========== COMBAT SYSTEM ==========
+    
+    let playerInventory = ["Basic Sword", "Leather Armor", "Health Potion x3"];
+    let playerStats = {
+      health: 100,
+      maxHealth: 100,
+      mana: 50,
+      maxMana: 50,
+      attack: 10,
+      defense: 5,
+      level: 1,
+      experience: 0
+    };
+    
+    function renderInventory() {
+      const container = document.getElementById("inventoryGrid");
+      if (!container) return;
+      
+      container.innerHTML = playerInventory.map((item, index) => `
+        <div class="inventory-slot" onclick="useItem(${index})">
+          <div class="item-icon">📦</div>
+          <span>${item}</span>
+        </div>
+      `).join("");
+    }
+    
+    function useItem(index) {
+      const item = playerInventory[index];
+      if (item.includes("Potion")) {
+        playerStats.health = Math.min(playerStats.maxHealth, playerStats.health + 30);
+        playerInventory[index] = item.replace(/x(\d+)/, (m, n) => `x${parseInt(n) - 1}`);
+        if (item.includes("x1")) playerInventory.splice(index, 1);
+        renderInventory();
+        updatePlayerStats();
+        alert("❤️ +30 HP");
+      }
+    }
+    
+    function updatePlayerStats() {
+      const statsContainer = document.getElementById("playerStatsPanel");
+      if (!statsContainer) return;
+      
+      statsContainer.innerHTML = `
+        <h4>⚔️ Estadísticas del jugador</h4>
+        <div class="stat-bar">
+          <span>❤️ Vida</span>
+          <div class="stat-bar-bg">
+            <div class="stat-bar-fill health" style="width: ${(playerStats.health / playerStats.maxHealth) * 100}%"></div>
+          </div>
+          <span>${playerStats.health}/${playerStats.maxHealth}</span>
+        </div>
+        <div class="stat-bar">
+          <span>✨ Maná</span>
+          <div class="stat-bar-bg">
+            <div class="stat-bar-fill mana" style="width: ${(playerStats.mana / playerStats.maxMana) * 100}%"></div>
+          </div>
+          <span>${playerStats.mana}/${playerStats.maxMana}</span>
+        </div>
+        <p>⚔️ Ataque: ${playerStats.attack}</p>
+        <p>🛡️ Defensa: ${playerStats.defense}</p>
+        <p>⭐ Nivel: ${playerStats.level}</p>
+        <p>📊 EXP: ${playerStats.experience}</p>
+      `;
+    }
+    
+    // ========== VR/AR MODE ==========
+    
+    let xrSession = null;
+    let xrSupported = false;
+    
+    async function checkVRSupport() {
+      if ('xr' in navigator) {
+        xrSupported = await navigator.xr.isSessionSupported('immersive-vr');
+        const vrButton = document.getElementById("vrButton");
+        if (vrButton) {
+          vrButton.disabled = !xrSupported;
+          vrButton.textContent = xrSupported ? "🥽 Entrar en VR" : "VR no disponible";
+        }
+      }
+    }
+    
+    async function enterVRMode() {
+      if (!xrSupported || !babylonScene) {
+        alert("VR no disponible o mundo no cargado");
+        return;
+      }
+      
+      try {
+        xrSession = await navigator.xr.requestSession('immersive-vr');
+        alert("🥽 Modo VR activado");
+        unlockAchievement("vr_pioneer");
+      } catch (e) {
+        alert(`Error activando VR: ${e.message}`);
+      }
+    }
+    
+    async function enterARMode() {
+      if (!babylonScene) {
+        alert("Mundo no cargado");
+        return;
+      }
+      
+      try {
+        const arSupported = await navigator.xr.isSessionSupported('immersive-ar');
+        if (arSupported) {
+          xrSession = await navigator.xr.requestSession('immersive-ar');
+          alert("📱 Modo AR activado");
+        } else {
+          alert("AR no disponible en este dispositivo");
+        }
+      } catch (e) {
+        alert(`Error activando AR: ${e.message}`);
+      }
+    }
+    
+    // Initialize on load
+    checkVRSupport();
+    
+    // ========== COLLAPSIBLE PANELS ==========
+    
+    function togglePanel(panelId) {
+      const body = document.getElementById(`panel-${panelId}`);
+      const toggle = body.previousElementSibling.querySelector('.panel-toggle');
+      
+      if (body.classList.contains('open')) {
+        body.classList.remove('open');
+        toggle.classList.remove('open');
+      } else {
+        body.classList.add('open');
+        toggle.classList.add('open');
+      }
+    }
+    
+    // ========== FAQ AND TUTORIAL SYSTEM ==========
+    
+    function askQuickQuestion(question) {
+      document.getElementById("npcInput").value = question;
+      sendNpcMessage();
+    }
+    
+    async function showFAQ() {
+      try {
+        const res = await fetch(`${API}/npc/faq`);
+        const data = await res.json();
+        
+        const modal = document.createElement("div");
+        modal.className = "faq-modal";
+        modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+        
+        modal.innerHTML = `
+          <div class="faq-content" onclick="event.stopPropagation()">
+            <button class="modal-close-btn" onclick="this.closest('.faq-modal').remove()">×</button>
+            <h2>❓ Preguntas Frecuentes</h2>
+            ${data.faqs.map(faq => `
+              <div class="faq-item">
+                <div class="faq-question">${faq.q}</div>
+                <div class="faq-answer">${faq.a}</div>
+              </div>
+            `).join("")}
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+      } catch (e) {
+        alert(`Error cargando FAQ: ${e.message}`);
+      }
+    }
+    
+    async function showTutorial(topic) {
+      try {
+        const res = await fetch(`${API}/npc/tutorial/${topic}`);
+        const data = await res.json();
+        
+        const modal = document.createElement("div");
+        modal.className = "tutorial-modal";
+        modal.onclick = (e) => { if (e.target === modal) modal.remove(); };
+        
+        modal.innerHTML = `
+          <div class="tutorial-content" onclick="event.stopPropagation()">
+            <button class="modal-close-btn" onclick="this.closest('.tutorial-modal').remove()">×</button>
+            <h2>📚 Tutorial ${topic === 'basico' ? 'Básico' : 'Avanzado'}</h2>
+            <pre>${data.content}</pre>
+            ${topic === 'basico' ? `
+              <button onclick="this.closest('.tutorial-modal').remove(); showTutorial('avanzado')" class="button-secondary">
+                Ver Tutorial Avanzado →
+              </button>
+            ` : ''}
+          </div>
+        `;
+        
+        document.body.appendChild(modal);
+      } catch (e) {
+        alert(`Error cargando tutorial: ${e.message}`);
+      }
+    }
+    
+    // Mejorar función de envío de mensajes NPC
+    async function sendNpcMessage() {
+      const input = document.getElementById("npcInput");
+      const chat = document.getElementById("npcChat");
+      const message = input.value.trim();
+      
+      if (!message) return;
+      
+      // Mostrar mensaje del usuario
+      const userMsg = document.createElement("div");
+      userMsg.className = "chip";
+      userMsg.style.background = "var(--accent-primary)";
+      userMsg.style.marginBottom = "8px";
+      userMsg.textContent = `Tú: ${message}`;
+      chat.appendChild(userMsg);
+      
+      input.value = "";
+      
+      // Mostrar indicador de carga
+      const loadingMsg = document.createElement("div");
+      loadingMsg.className = "chip";
+      loadingMsg.style.background = "var(--bg-tertiary)";
+      loadingMsg.style.marginBottom = "8px";
+      loadingMsg.innerHTML = `🤖 <span class="spinner"></span> Pensando...`;
+      chat.appendChild(loadingMsg);
+      
+      chat.scrollTop = chat.scrollHeight;
+      
+      try {
+        const res = await fetch(`${API}/npc/chat`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: message,
+            history: npcHistory,
+            world_summary: lastPayload?.world?.summary || null
+          })
+        });
+        
+        const data = await res.json();
+        
+        // Remover indicador de carga
+        loadingMsg.remove();
+        
+        // Mostrar respuesta del asistente
+        const assistantMsg = document.createElement("div");
+        assistantMsg.className = "chip";
+        assistantMsg.style.background = "var(--accent-success)";
+        assistantMsg.style.marginBottom = "8px";
+        assistantMsg.style.whiteSpace = "pre-wrap";
+        assistantMsg.textContent = `🦈 DataShark: ${data.reply}`;
+        chat.appendChild(assistantMsg);
+        
+        // Guardar en historial
+        npcHistory.push({ role: "user", content: message });
+        npcHistory.push({ role: "assistant", content: data.reply });
+        
+        // Limitar historial a últimos 10 mensajes
+        if (npcHistory.length > 10) {
+          npcHistory = npcHistory.slice(-10);
+        }
+        
+      } catch (e) {
+        loadingMsg.remove();
+        const errorMsg = document.createElement("div");
+        errorMsg.className = "chip";
+        errorMsg.style.background = "var(--accent-danger)";
+        errorMsg.textContent = `❌ Error: ${e.message}`;
+        chat.appendChild(errorMsg);
+      }
+      
+      chat.scrollTop = chat.scrollHeight;
+    }
+    
+    // Permitir enviar con Enter
+    document.addEventListener("DOMContentLoaded", () => {
+      const npcInput = document.getElementById("npcInput");
+      if (npcInput) {
+        npcInput.addEventListener("keypress", (e) => {
+          if (e.key === "Enter") {
+            sendNpcMessage();
+          }
+        });
+      }
+    });
+    
+    // ========== NEW FEATURES FUNCTIONS ==========
+    
+    // QUESTS SYSTEM
+    async function loadQuests() {
+      if (!lastWorldId) return;
+      
+      try {
+        const res = await fetch(`${API}/quests/${lastWorldId}`);
+        const data = await res.json();
+        const quests = data.quests || [];
+        
+        const activeContainer = document.getElementById("activeQuestsList");
+        const completedContainer = document.getElementById("completedQuestsList");
+        
+        if (!activeContainer || !completedContainer) return;
+
+        if (quests.length === 0) {
+          activeContainer.innerHTML = `
+            <div class="quest-card">
+              <div class="quest-title">Sin quests aún</div>
+              <div class="muted-text">Genera quests de ejemplo para empezar.</div>
+              <button onclick="seedQuests()" class="button-secondary button-inline" style="margin-top:12px;">Generar quests</button>
+            </div>
+          `;
+          completedContainer.innerHTML = '<p class="muted-text">No has completado quests aún</p>';
+          return;
+        }
+
+        const activeQuests = quests.filter(q => q.status !== 'completed');
+        const completedQuests = quests.filter(q => q.status === 'completed');
+        
+        // Mostrar todos los quests en activos si no hay campo status
+        const questsToShow = activeQuests.length > 0 || completedQuests.length > 0 ? 
+          [activeQuests, completedQuests] : [quests, []];
+        
+        activeContainer.innerHTML = questsToShow[0].length === 0 ? 
+          '<p class="muted-text">No hay quests activas</p>' :
+          questsToShow[0].map(q => `
+            <div class="quest-card">
+              <div class="quest-title">${q.title}</div>
+              <div class="muted-text">${q.description}</div>
+              <div class="chip difficulty-${q.difficulty}">${q.difficulty.toUpperCase()}</div>
+              <div style="margin-top:8px; font-size:0.85em; color:#aaa;">Tipo: ${q.quest_type || 'N/A'}</div>
+              <button onclick="console.log('TODO: Start quest'); return false;" class="button-secondary button-inline" style="margin-top:8px;">Comenzar</button>
+            </div>
+          `).join("");
+        
+        completedContainer.innerHTML = questsToShow[1].length === 0 ?
+          '<p class="muted-text">No has completado quests aún</p>' :
+          questsToShow[1].map(q => `
+            <div class="quest-card">
+              <div class="quest-title">✅ ${q.title}</div>
+              <div class="muted-text">${q.description}</div>
+            </div>
+          `).join("");
+        
+      } catch (e) {
+        console.error("Error cargando quests:", e);
+      }
+    }
+
+    async function seedQuests() {
+      if (!lastWorldId) return;
+
+      try {
+        const res = await fetch(`${API}/quests/seed`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ world_id: lastWorldId })
+        });
+
+        const data = await res.json();
+        alert(data.message);
+        loadQuests();
+      } catch (e) {
+        alert(`Error generando quests: ${e.message}`);
+      }
+    }
+    
+    // INVENTORY & CRAFTING
+    async function loadInventory() {
+      const userId = localStorage.getItem("userId");
+      if (!userId || !lastWorldId) return;
+      
+      try {
+        const res = await fetch(`${API}/inventory/${userId}/${lastWorldId}`);
+        const data = await res.json();
+        
+        document.getElementById("currencyAmount").textContent = data.currency || 0;
+        
+        const grid = document.getElementById("fullInventoryGrid");
+        if (!grid) return;
+        
+        if (!data.items || data.items.length === 0) {
+          grid.innerHTML = '<p class="muted-text">Inventario vacío</p>';
+          return;
+        }
+        
+        grid.innerHTML = data.items.map(item => `
+          <div class="inventory-item item-rarity-${item.rarity || 'common'}" title="${item.name}">
+            ${item.icon || '📦'}
+            <div style="position: absolute; bottom: 4px; right: 4px; font-size: 12px;">
+              x${item.quantity || 1}
+            </div>
+          </div>
+        `).join("");
+        
+      } catch (e) {
+        console.error("Error cargando inventario:", e);
+      }
+    }
+    
+    async function loadCraftingRecipes() {
+      try {
+        const res = await fetch(`${API}/crafting/recipes`);
+        const data = await res.json();
+        
+        const container = document.getElementById("craftingRecipes");
+        if (!container) return;
+        
+        container.innerHTML = data.recipes.map(recipe => `
+          <div class="recipe-card" onclick="craftItem('${recipe.id}')">
+            <div class="quest-title">${recipe.name}</div>
+            <div class="muted-text">${recipe.description}</div>
+            <div class="chip">Nivel ${recipe.required_level}</div>
+            <div class="chip">⏱️ ${recipe.crafting_time}s</div>
+          </div>
+        `).join("");
+        
+      } catch (e) {
+        console.error("Error cargando recetas:", e);
+      }
+    }
+    
+    async function craftItem(recipeId) {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return alert("Inicia sesión primero");
+      
+      try {
+        const res = await fetch(`${API}/crafting/craft?user_id=${encodeURIComponent(userId)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ recipe_id: recipeId, quantity: 1 })
+        });
+        
+        const data = await res.json();
+        alert(data.message);
+        loadInventory();
+        
+      } catch (e) {
+        alert(`Error crafteando: ${e.message}`);
+      }
+    }
+    
+    // MARKET SYSTEM
+    async function loadMarket() {
+      try {
+        const res = await fetch(`${API}/market/browse`);
+        const data = await res.json();
+        
+        const container = document.getElementById("marketListings");
+        if (!container) return;
+        
+        if (data.listings.length === 0) {
+          container.innerHTML = '<p class="muted-text">No hay items en venta</p>';
+          return;
+        }
+        
+        container.innerHTML = data.listings.map(listing => `
+          <div class="market-item">
+            <div class="market-title">${listing.item_name}</div>
+            <div class="muted-text">${listing.description || 'Sin descripción'}</div>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 8px;">
+              <div class="currency-display">💰 ${listing.price}</div>
+              <button onclick="buyMarketItem('${listing.id}')" class="button-secondary button-inline">Comprar</button>
+            </div>
+            <div class="chip">x${listing.quantity}</div>
+          </div>
+        `).join("");
+        
+      } catch (e) {
+        console.error("Error cargando mercado:", e);
+      }
+    }
+    
+    async function listItemForSale() {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return alert("Inicia sesión primero");
+      
+      const itemId = document.getElementById("sellItemId").value.trim();
+      const itemName = document.getElementById("sellItemName").value.trim();
+      const price = parseInt(document.getElementById("sellItemPrice").value);
+      const quantity = parseInt(document.getElementById("sellItemQty").value);
+      const description = document.getElementById("sellItemDesc").value.trim();
+      
+      if (!itemId || !itemName || !price || !quantity) {
+        return alert("Completa todos los campos");
+      }
+      
+      try {
+        const res = await fetch(`${API}/market/list?user_id=${encodeURIComponent(userId)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            item_id: itemId,
+            item_name: itemName,
+            price: price,
+            quantity: quantity,
+            description: description
+          })
+        });
+        
+        const data = await res.json();
+        alert(data.message);
+        
+        document.getElementById("sellItemId").value = "";
+        document.getElementById("sellItemName").value = "";
+        document.getElementById("sellItemPrice").value = "";
+        document.getElementById("sellItemQty").value = "1";
+        document.getElementById("sellItemDesc").value = "";
+        
+        loadMarket();
+        
+      } catch (e) {
+        alert(`Error publicando venta: ${e.message}`);
+      }
+    }
+
+    async function buyMarketItem(listingId) {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return alert("Inicia sesión primero");
+
+      try {
+        const res = await fetch(`${API}/market/buy?user_id=${encodeURIComponent(userId)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ listing_id: listingId, quantity: 1 })
+        });
+
+        const data = await res.json();
+        if (data.detail) throw new Error(data.detail);
+        alert(data.message);
+        loadMarket();
+      } catch (e) {
+        alert(`Error al comprar: ${e.message}`);
+      }
+    }
+    
+    // CLANS SYSTEM
+    async function loadClans() {
+      try {
+        const res = await fetch(`${API}/clans/list`);
+        const data = await res.json();
+        
+        const container = document.getElementById("clansList");
+        if (!container) return;
+        
+        if (data.clans.length === 0) {
+          container.innerHTML = '<p class="muted-text">No hay clanes aún</p>';
+          return;
+        }
+        
+        container.innerHTML = data.clans.map(clan => `
+          <div class="clan-card">
+            <div class="clan-name">👥 ${clan.name}</div>
+            <div class="muted-text">${clan.description || 'Sin descripción'}</div>
+            <div style="display: flex; gap: 8px; margin-top: 8px;">
+              <div class="chip">Nivel ${clan.clan_level}</div>
+              <div class="chip">${clan.member_count} miembros</div>
+            </div>
+          </div>
+        `).join("");
+        
+      } catch (e) {
+        console.error("Error cargando clanes:", e);
+      }
+    }
+    
+    async function createNewClan() {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return alert("Inicia sesión primero");
+      
+      const name = document.getElementById("clanName").value.trim();
+      const description = document.getElementById("clanDesc").value.trim();
+      
+      if (!name) return alert("Ingresa un nombre para el clan");
+      
+      try {
+        const res = await fetch(`${API}/clans/create?user_id=${encodeURIComponent(userId)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name, description })
+        });
+        
+        const data = await res.json();
+        alert(data.message);
+        
+        document.getElementById("clanName").value = "";
+        document.getElementById("clanDesc").value = "";
+        
+        loadClans();
+        
+      } catch (e) {
+        alert(`Error creando clan: ${e.message}`);
+      }
+    }
+    
+    // STATISTICS
+    async function loadPlayerStats() {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return;
+      
+      try {
+        const res = await fetch(`${API}/stats/${userId}`);
+        const data = await res.json();
+        
+        const container = document.getElementById("playerStatsDisplay");
+        if (!container) return;
+        
+        container.innerHTML = `
+          <div class="stat-card">
+            <div class="stat-label">⏱️ Tiempo Jugado</div>
+            <div class="stat-value">${Math.floor(data.total_playtime / 60)}h</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">⚔️ Enemigos Derrotados</div>
+            <div class="stat-value">${data.enemies_defeated}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">📏 Distancia Recorrida</div>
+            <div class="stat-value">${data.distance_traveled.toFixed(1)}km</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">💎 Items Colectados</div>
+            <div class="stat-value">${data.items_collected}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">🎯 Quests Completadas</div>
+            <div class="stat-value">${data.quests_completed}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">💀 Muertes</div>
+            <div class="stat-value">${data.deaths}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">🌍 Mundos Creados</div>
+            <div class="stat-value">${data.worlds_created}</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-label">🏆 Logros Desbloqueados</div>
+            <div class="stat-value">${data.achievements_unlocked}</div>
+          </div>
+        `;
+        
+      } catch (e) {
+        console.error("Error cargando estadísticas:", e);
+      }
+    }
+    
+    // SETTINGS
+    async function updateSettings() {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return;
+      
+      const audioVolume = parseFloat(document.getElementById("audioVolume").value);
+      const musicVolume = parseFloat(document.getElementById("musicVolume").value);
+      const sfxVolume = parseFloat(document.getElementById("sfxVolume").value);
+      
+      document.getElementById("audioVolumeLabel").textContent = Math.round(audioVolume * 100) + "%";
+      document.getElementById("musicVolumeLabel").textContent = Math.round(musicVolume * 100) + "%";
+      document.getElementById("sfxVolumeLabel").textContent = Math.round(sfxVolume * 100) + "%";
+      
+      try {
+        await fetch(`${API}/settings/update?user_id=${encodeURIComponent(userId)}`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            graphics_quality: document.getElementById("graphicsQuality").value,
+            audio_volume: audioVolume,
+            music_volume: musicVolume,
+            sfx_volume: sfxVolume,
+            colorblind_mode: document.getElementById("colorblindMode").value,
+            subtitle_size: document.getElementById("subtitleSize").value
+          })
+        });
+        
+      } catch (e) {
+        console.error("Error actualizando configuración:", e);
+      }
+    }
+    
+    async function loadSettings() {
+      const userId = localStorage.getItem("userId");
+      if (!userId) return;
+      
+      try {
+        const res = await fetch(`${API}/settings/${userId}`);
+        const data = await res.json();
+        
+        document.getElementById("graphicsQuality").value = data.graphics_quality;
+        document.getElementById("audioVolume").value = data.audio_volume;
+        document.getElementById("musicVolume").value = data.music_volume;
+        document.getElementById("sfxVolume").value = data.sfx_volume;
+        document.getElementById("colorblindMode").value = data.colorblind_mode;
+        document.getElementById("subtitleSize").value = data.subtitle_size;
+        
+        document.getElementById("audioVolumeLabel").textContent = Math.round(data.audio_volume * 100) + "%";
+        document.getElementById("musicVolumeLabel").textContent = Math.round(data.music_volume * 100) + "%";
+        document.getElementById("sfxVolumeLabel").textContent = Math.round(data.sfx_volume * 100) + "%";
+        
+      } catch (e) {
+        console.error("Error cargando configuración:", e);
+      }
+    }
+    
+    // TEMPLATES
+    async function loadTemplates() {
+      try {
+        const res = await fetch(`${API}/templates/list`);
+        const data = await res.json();
+        
+        const container = document.getElementById("templatesList");
+        if (!container) return;
+        
+        container.innerHTML = data.templates.map(template => `
+          <div class="template-card" onclick="useTemplate('${template.id}')">
+            <div class="template-name">${template.name}</div>
+            <div class="muted-text">${template.description}</div>
+            <div class="chip">${template.category}</div>
+            <div class="chip">Usado ${template.usage_count} veces</div>
+          </div>
+        `).join("");
+        
+      } catch (e) {
+        console.error("Error cargando plantillas:", e);
+      }
+    }
+    
+    async function useTemplate(templateId) {
+      try {
+        const res = await fetch(`${API}/templates/${templateId}`);
+        const data = await res.json();
+        
+        // Pre-fill prompt with template data
+        const promptField = document.getElementById("prompt");
+        if (promptField && data.template_data) {
+          const templateData = data.template_data || {};
+          promptField.value = `${data.name}: ${data.description}. Biomas: ${templateData.biomes?.join(", ") || "variados"}`;
+        }
+        
+        goToHome();
+        alert(`Plantilla "${data.name}" cargada. Genera el mundo ahora.`);
+        
+      } catch (e) {
+        alert(`Error cargando plantilla: ${e.message}`);
+      }
+    }
+    
+    // Auto-load data when switching tabs
+    const originalSwitchTab = window.switchTab;
+    window.switchTab = function(tabName) {
+      originalSwitchTab(tabName);
+      
+      setTimeout(() => {
+        if (tabName === 'quests') loadQuests();
+        else if (tabName === 'inventory') { loadInventory(); loadCraftingRecipes(); }
+        else if (tabName === 'market') loadMarket();
+        else if (tabName === 'clans') loadClans();
+        else if (tabName === 'stats') loadPlayerStats();
+        else if (tabName === 'settings') loadSettings();
+        else if (tabName === 'templates') loadTemplates();
+      }, 100);
+    };
+  </script>
+  <script src="https://cdn.babylonjs.com/cannon.js"></script>
+</body>
+</html>
